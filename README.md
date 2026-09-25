@@ -97,12 +97,13 @@ $ node tools/replay.js --token 0x2f62eb241876cd49eb9135824a893ae62912434a
 
 ![replay.js prints the state hash](docs/img/replay.png)
 
-The hash `replay.js` prints for a step must be the one the page shows for that step. I checked it four ways:
+The hash `replay.js` prints for a step must be the one the page shows for that step. I checked it five ways:
 
 - collector against replay: the collector wrote `72cdd580 @28160` into `meta.json` and `replay.js --log data/events --to 28160` printed `72cdd580`
 - page in SYNC mode against replay: the page showed `043972fd @28359` and `replay.js` at step 28359 printed `043972fd`
 - across an hourly shard rollover: the collector's `d84d1c57 @52144`, read from two shards, matched `replay.js`
 - two viewports on the demo: `d4d28976 @17618` on both
+- the deployed site against my machine: https://weedbrain.vercel.app in a browser showed `856dc7e0 @69652` on SNIFFR, and `replay.js --token ... --lookback 60 --to 69652` printed `856dc7e0`
 
 ## Tests
 

@@ -22,10 +22,12 @@ The buy button on the live page only appears when `token` equals `ca`, so a toke
 Static hosting of `src/`, nothing else. Every viewer's browser reads the chain. Badge `LOCAL`.
 
 ```
-vercel deploy --prod
+tools/deploy.sh
 ```
 
-`vercel.json` serves `src/` as the site and marks the config as `no-cache`, so a config change shows up on the next page load.
+It copies `src/` to a temporary folder and deploys that to the Vercel project linked in `.vercel/project.json`. Deploying the repository folder directly was blocked by Vercel because the commit author is not a member of the Vercel team. `vercel.json` marks the config as `no-cache`, so a config change shows up on the next page load.
+
+Live now: https://weedbrain.vercel.app (watching a borrowed test token until launch).
 
 ## Collector mode
 

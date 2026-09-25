@@ -1,0 +1,10 @@
+node_modules
+art
+data
+test
+docs
+ingest
+tools
+.github
+*.md
+.vercel
