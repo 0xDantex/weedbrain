@@ -1,0 +1,6 @@
+{
+  "out": "data",
+  "pollMs": 2000,
+  "snapshotSteps": 6000,
+  "keepCheckpoints": 48
+}

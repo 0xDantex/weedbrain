@@ -1,0 +1,12 @@
+{
+  "name": "WEED BRAIN",
+  "ticker": "WBRAIN",
+  "ca": "",
+  "mode": "direct",
+  "token": "0xf46a01a987529aed9f32bc03c553ef1e7ff2c32c",
+  "genesisBlock": 0,
+  "lookbackMin": 60,
+  "pollMs": 1500,
+  "buyUrl": "https://ponsportal.fun/token/{token}",
+  "dataUrl": "/data/"
+}

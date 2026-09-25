@@ -1,0 +1,26 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  no-keys:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: no signing code or keys in the source
+        run: |
+          if grep -rnE "PRIVATE_KEY|privateKeyToAccount|signTransaction|sendTransaction" \
+               --include='*.js' --include='*.html' --include='*.json' --include='*.py' \
+               --exclude-dir=node_modules --exclude-dir=.github . ; then
+            echo "found signing code or a key reference"; exit 1
+          fi
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: node tools/profile.js

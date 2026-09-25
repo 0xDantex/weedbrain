@@ -1,0 +1,42 @@
+# Deploy
+
+## What to fill in
+
+`src/weedbrain.config.json`:
+
+| field | value |
+|---|---|
+| `name`, `ticker` | shown on the pages |
+| `ca` | the token's contract address. Empty until launch: the landing page then says "not launched yet" and hides every buy link |
+| `token` | the token the scene watches. At launch, the same address as `ca` |
+| `mode` | `direct` or `collector`. An empty `token` is demo whatever this says |
+| `genesisBlock` | leave 0: the launch block is found on chain |
+| `lookbackMin` | 0 for your own token. Only for watching a foreign token that has traded for a long time |
+| `buyUrl` | `{token}` is replaced with the address |
+| `dataUrl` | where `data/` is served, for collector mode |
+
+The buy button on the live page only appears when `token` equals `ca`, so a token borrowed for testing never gets a buy link.
+
+## Direct mode
+
+Static hosting of `src/`, nothing else. Every viewer's browser reads the chain. Badge `LOCAL`.
+
+```
+vercel deploy --prod
+```
+
+`vercel.json` serves `src/` as the site and marks the config as `no-cache`, so a config change shows up on the next page load.
+
+## Collector mode
+
+A machine that is on all the time runs `node ingest/ingest.js --token 0x...` (see [docs/RUNBOOK.md](docs/RUNBOOK.md)) and a web server serves `src/` and `data/` from the same origin, `data/` with `Cache-Control: no-cache` and `Range` support. Set `mode` to `collector`. Badge `SYNC`.
+
+**Start the collector before the first trade of the token.** It can read the history back to genesis on its own, but the moment the site switches to collector mode every viewer reads only what the collector has written, and the first trades set the high everything after them is measured against. Starting first is the simple way to be sure nothing depends on a catch-up.
+
+## Launch order
+
+1. Launch the token on Pons.
+2. Put its address in `ca` and `token`.
+3. If using the collector: start it, wait for its first `wrote ... rows` line.
+4. Deploy.
+5. Open `/weedbrain.html`, check the address in the header and that the first trades appear in the feed.

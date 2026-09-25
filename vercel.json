@@ -1,0 +1,10 @@
+{
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "src",
+  "framework": null,
+  "headers": [
+    { "source": "/weedbrain.config.json", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/frames/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+  ]
+}

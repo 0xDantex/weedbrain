@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WEED BRAIN - live</title>
+<meta name="description" content="A buy throws the reaper a joint, a sell sends a buzzkill to put it out and the haze in the room is the drawdown from the high.">
+<meta property="og:title" content="WEED BRAIN">
+<meta property="og:description" content="A buy throws the reaper a joint, a sell sends a buzzkill to put it out and the haze in the room is the drawdown from the high.">
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og.png">
+<meta name="theme-color" content="#0b0907">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-mode="" data-stage="4">
+<header class="bar">
+  <a class="brand" href="index.html"><img src="favicon.png" alt="" width="22" height="22"><span>WEED BRAIN</span><em data-ticker></em></a>
+  <span class="watching">watching <b id="watching">-</b> <a id="token" target="_blank" rel="noopener">demo generator</a></span>
+  <a class="btn" id="buy" target="_blank" rel="noopener">Buy</a>
+</header>
+<main class="app">
+  <section class="stagewrap">
+    <div class="frame" id="frame">
+      <canvas id="scene" width="448" height="336" aria-label="The reaper and his room, drawn from the trade log"></canvas>
+      <div id="popups" aria-hidden="true"></div>
+      <div class="hud tl">
+        <div id="stage" class="stage">-</div>
+        <div id="joints" class="sub">-</div>
+      </div>
+      <div class="hud tr">
+        <span id="badge" class="badge">-</span>
+        <span id="hash" class="hash">-</span>
+      </div>
+      <div class="hud bl">
+        <div class="haze"><span>haze</span><i><b id="hazebar"></b></i><span id="haze">0%</span></div>
+        <div class="counts">buzzkills stopped <b id="repelled">0</b> of <b id="total">0</b>, got through <b id="arrived">0</b>, walking <b id="walking">0</b></div>
+      </div>
+      <div class="demo-stripe">DEMO - generated trades, nothing here is real</div>
+      <div id="stale" class="notice" hidden></div>
+      <div id="empty" class="notice" hidden>No trades yet. He waits.</div>
+      <div id="screen" hidden>
+        <div class="box">
+          <div id="screen-title" class="title">LOADING</div>
+          <div id="screen-body" class="body"></div>
+          <div id="screen-bar" class="pbar"><b></b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <aside class="feed" id="feed">
+    <h2>Last 20 trades</h2>
+    <div class="feed-head"><span>time</span><span></span><span>tokens</span><span>on scene</span></div>
+    <div id="feed-list"></div>
+  </aside>
+</main>
+<button id="feed-toggle" class="feed-toggle">trades</button>
+<script type="module" src="app.js"></script>
+</body>
+</html>

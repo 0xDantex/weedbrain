@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WEED BRAIN</title>
+<meta name="description" content="A buy throws the reaper a joint, a sell sends a buzzkill to put it out and the haze in the room is the drawdown from the high.">
+<meta property="og:title" content="WEED BRAIN">
+<meta property="og:description" content="A buy throws the reaper a joint, a sell sends a buzzkill to put it out and the haze in the room is the drawdown from the high.">
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og.png">
+<meta name="theme-color" content="#0b0907">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#"><img src="favicon.png" alt="" width="26" height="26"><span>WEED BRAIN</span><em data-ticker>$WBRAIN</em></a>
+  <nav>
+    <a href="#rules">Rules</a>
+    <a href="#stages">Stages</a>
+    <a href="#verify">Verify</a>
+    <a href="#not">What it is not</a>
+  </nav>
+  <a class="btn" data-buy href="#" hidden>Buy</a>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="copy">
+      <p class="over">a reaper on Robinhood Chain, kept high by one Pons v2 token</p>
+      <h1>Every buy keeps him high.<br><span>Every sell sends a buzzkill.</span></h1>
+      <p class="lede">Buys throw him joints. Sells send people to put them out. The haze in his room is how far the price sits below its high. When everything goes out he sobers up angry and at the very bottom he reaches for the gun. He does not die. He waits for the next buy.</p>
+      <div class="ctas">
+        <a class="btn big" href="weedbrain.html">Watch him live</a>
+        <a class="btn ghost big" href="#verify">How to verify</a>
+      </div>
+      <div class="ca">
+        <span class="label">contract</span>
+        <code id="ca">not launched yet</code>
+        <button id="copy" type="button" hidden>copy</button>
+      </div>
+    </div>
+    <a class="shot" href="weedbrain.html" aria-label="Open the live scene">
+      <img src="img/scene-smoking.png" alt="The reaper smoking in his room, three joints in the ashtray, buzzkills walking in" width="896" height="672">
+      <span class="live">open live scene</span>
+    </a>
+  </section>
+
+  <section id="rules" class="rules">
+    <h2>Three rules</h2>
+    <p class="note">Nothing here is a metaphor. Each rule maps to one thing on the chain.</p>
+    <div class="cards">
+      <article>
+        <b>01</b>
+        <h3>A buy throws him a joint</h3>
+        <p>The size of the buy sets the length of the joint, on a log scale with a ceiling. Several burn at once and burn down on their own. Every buy also flicks a lighter that pushes back the nearest buzzkill, the only thing that stops them.</p>
+        <small>CurveBuy on the curve, or a v4 swap into the token after graduation</small>
+      </article>
+      <article>
+        <b>02</b>
+        <h3>A sell brings a buzzkill</h3>
+        <p>A cop, a mom, a fed or a priest walks in, picked by the transaction hash and not by me. If it reaches him it puts out his longest joint. A big sell puts out two.</p>
+        <small>CurveSell on the curve, or a v4 swap out of the token</small>
+      </article>
+      <article>
+        <b>03</b>
+        <h3>The haze is the drawdown</h3>
+        <p>The further the price sits below its high, the less smoke hangs in the room and the colder the light. Buzzkills that got through add to it and that part heals slowly.</p>
+        <small>1 - price / high, plus the debt of doused joints</small>
+      </article>
+    </div>
+  </section>
+
+  <section id="stages" class="stages">
+    <h2>Ten stages, six of them here</h2>
+    <p class="note">The stage comes from how much is burning and how thick the haze is. Between stages the frames blend, so he never jumps.</p>
+    <div class="strip">
+      <figure><img src="frames/f03.png" alt="" width="252" height="316"><figcaption><b>CANDY</b> gone in the candy</figcaption></figure>
+      <figure><img src="frames/f13.png" alt="" width="252" height="316"><figcaption><b>SMOKING</b> leaning back</figcaption></figure>
+      <figure><img src="frames/f22.png" alt="" width="252" height="316"><figcaption><b>COLD</b> sober, no smoke</figcaption></figure>
+      <figure><img src="frames/f28.png" alt="" width="252" height="316"><figcaption><b>TEETH</b> jaw set</figcaption></figure>
+      <figure><img src="frames/f43.png" alt="" width="252" height="316"><figcaption><b>RAGING</b> yelling</figcaption></figure>
+      <figure><img src="frames/f50.png" alt="" width="252" height="316"><figcaption><b>ARMED</b> the bottom</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="verify" class="verify">
+    <h2>How to check it</h2>
+    <p class="note">His state is a pure function of the genesis seed, the ordered trade log and the step number. The corner of the live page prints a hash of that state. Anyone can recompute it.</p>
+    <div class="cols">
+      <table>
+        <thead><tr><th>what</th><th>where it comes from</th></tr></thead>
+        <tbody>
+          <tr><td>joints</td><td>CurveBuy events of the token's curve, v4 swaps into the token</td></tr>
+          <tr><td>buzzkills</td><td>CurveSell events, v4 swaps out of the token</td></tr>
+          <tr><td>buzzkill type</td><td>the transaction hash</td></tr>
+          <tr><td>haze</td><td>trade price against the high of closed one-minute bars</td></tr>
+          <tr><td>randomness</td><td>a hash of (seed, step, purpose), never Math.random</td></tr>
+          <tr><td>seed</td><td>the token address and the genesis block</td></tr>
+          <tr><td>data source</td><td>the public Robinhood Chain RPC, chain id 4663</td></tr>
+        </tbody>
+      </table>
+      <div class="cmds">
+<pre><code><span># the log, replayed on your machine</span>
+node tools/replay.js --token <i data-token>0x...</i>
+
+<span># the same token, live in the terminal</span>
+node tools/watch.js <i data-token>0x...</i>
+
+<span># the site, pointed at any token</span>
+npm run serve -- --token <i data-token>0x...</i></code></pre>
+      </div>
+    </div>
+    <div class="modes">
+      <div><span class="badge local">LOCAL</span><p>Your browser reads the chain itself. No server is involved. Every viewer starts from the same block and the same seed, so the hashes should match, but each one reads the RPC on their own and nothing forces them to agree.</p></div>
+      <div><span class="badge sync">SYNC</span><p>A collector process writes the log to shared files and every viewer reads those. One log, one state, one hash for everyone.</p></div>
+      <div><span class="badge demo">DEMO</span><p>No token set. A seeded generator makes up the trades and a red band says so across the scene.</p></div>
+    </div>
+  </section>
+
+  <section id="not" class="not">
+    <h2>What this is not</h2>
+    <ul>
+      <li>No utility. He is something to watch, not something that pays.</li>
+      <li>No yield, no staking, no rewards.</li>
+      <li>No promise about the price. The scene follows the chart, it does not move it.</li>
+      <li>He does not die. At the bottom he is armed and waiting and the next buy starts to bring him back.</li>
+      <li>Not trustless. The state is computed from public trades and you can recompute it, but the collector and this site are run by me.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="ca small"><span class="label">contract</span><code data-ca>not launched yet</code></div>
+  <nav>
+    <a href="weedbrain.html">Live scene</a>
+    <a data-pons href="#" hidden>Pons page</a>
+    <a data-scan href="#" hidden>Blockscout</a>
+  </nav>
+  <p class="disc">WEED BRAIN is a memecoin with an animation on top. It has no intrinsic value and no team behind it, just me. Nothing on this page is financial advice. Buy only what you are fine losing.</p>
+</footer>
+
+<script type="module">
+  const cfg = await fetch("weedbrain.config.json", { cache: "no-store" }).then((r) => r.json());
+  document.querySelectorAll("[data-ticker]").forEach((e) => (e.textContent = "$" + cfg.ticker));
+  const ca = (cfg.ca || "").toLowerCase();
+  if (ca) {
+    document.getElementById("ca").textContent = ca;
+    document.querySelectorAll("[data-ca]").forEach((e) => (e.textContent = ca));
+    document.querySelectorAll("[data-token]").forEach((e) => (e.textContent = ca));
+    const buy = cfg.buyUrl.replace("{token}", ca);
+    document.querySelectorAll("[data-buy], [data-pons]").forEach((e) => { e.href = buy; e.hidden = false; e.target = "_blank"; e.rel = "noopener"; });
+    const scan = document.querySelector("[data-scan]");
+    scan.href = "https://robinhoodchain.blockscout.com/token/" + ca;
+    scan.hidden = false;
+    const btn = document.getElementById("copy");
+    btn.hidden = false;
+    btn.onclick = async () => {
+      await navigator.clipboard.writeText(ca);
+      btn.textContent = "copied";
+      setTimeout(() => (btn.textContent = "copy"), 1500);
+    };
+  }
+</script>
+</body>
+</html>
