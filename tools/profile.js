@@ -10,9 +10,10 @@ const ctx2d = () => ({
   putImageData() {},
   drawImage() {},
   fillRect() {},
+  clearRect() {},
 });
 const canvas = () => { const c = ctx2d(); return { width: 0, height: 0, getContext: () => c }; };
-const frames = new Map(Array.from({ length: 50 }, (_, i) => [i + 1, { complete: true, naturalWidth: 672 }]));
+const frames = new Map(Array.from({ length: 50 }, (_, i) => [i + 1, { complete: true, naturalWidth: 672, naturalHeight: 720 }]));
 const buds = { data: new Uint8ClampedArray(RW * 260 * 4).map((_, i) => (i * 2654435761) >>> 24), width: RW, height: 260 };
 const r = new Renderer(canvas(), canvas(), frames, buds, { reducedMotion: false });
 
