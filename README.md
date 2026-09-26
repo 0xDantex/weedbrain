@@ -1,3 +1,5 @@
+![WEEDBRAIN](docs/img/banner.jpg)
+
 # WEEDBRAIN
 
 A giant joint with a burning head lies in a pile of buds and smokes a smaller joint. He smokes himself.
@@ -22,9 +24,9 @@ The site is built like a lab instrument, not a crypto landing page: paper backgr
 
 ![The first screen: the contract bar and the live specimen](docs/img/site-hero.png)
 
-- **The first screen** is the live specimen. Above it only a short title and one low bar with the contract, a copy button and the buy button, which stays inactive until `ca` is set. The header with the buy button stays on top while scrolling.
+- **The first screen** is the live specimen. Above it only a short title and, under it, the contract in large type in an ember frame, a copy button and the buy button, which stays inactive until `ca` is set. The header with the buy button stays on top while scrolling.
 - **The counters** under the scene: holders, trades in 24 h, market cap in ETH, the stage, the time in it, the last update and the block.
-- **The live specimen** is the scene, with a ten-step scale on the left and gauges on the right (joints burning, the bud pile in percent of its maximum, buzzkills inbound, the mug) and the trade tape under it, every row a Blockscout link. Each trade also pops a card in the corner for 4 s: a buy in orange with `+ETH` and `a joint lands`, a sell in red with `buzzkill incoming`. When the mug goes, a full-width `THE MUG IS DOWN` card drops and the scene shakes.
+- **The live specimen** is the scene, with a ten-step scale on the left and gauges on the right, each with one line saying what it means (his mood, the joints lit, the bud pile, buys and sells in the last 5 minutes, the mug) and the trade tape under it, every row a Blockscout link. Each trade also pops a card in the corner for 4 s: a buy in orange with `+ETH` and `a joint lands`, a sell in red with `buzzkill incoming`. Buzzkills are not drawn walking on the scene anymore: the cards are where sells show up. When the mug goes, a full-width `THE MUG IS DOWN` card drops and the scene shakes.
 - **The brain of a joint** is a made-up anatomy plate: a point cloud of about 58,000 neurons packed into bud-shaped lumps, with thin shells where the lobes end, drawn with three.js and turning slowly (drag to rotate). Six regions answer to the chain: a buy lights the CB1 LOBE, a sell heats the EMBER NUCLEUS, a buzzkill wakes the PARANOIA TRACT, a spill jolts the MUG CORTEX, the pile sets the BUD GANGLION and the MUNCHIE NERVE never stops. Hovering a region or its label dims the rest and opens a card. Under it a coupling matrix, the buys and sells of the last 5 minutes with the mood line and a count of cell types, all moving with the trades. It says it is a joke under the plate, because it is.
 - **The rest:** the three rules, the ten states (hover plays the clip, the current one is outlined), what this is not, the footer.
 

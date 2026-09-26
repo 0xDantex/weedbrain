@@ -130,18 +130,13 @@ export class Renderer {
     } else if (rec.t === "flash" && live) {
       // the extra drag on a buy: a puff off his small joint
       for (let i = 0; i < 14; i++) this.parts.push({ x: CX + 150 + Math.random() * 60, y: 240 + Math.random() * 40, vx: 0.4 + Math.random() * 0.8, vy: -0.8 - Math.random() * 0.8, g: 0, life: 70, max: 70, c: 0xc9c6bf, r: 6, smoke: true });
-      const k = rec.target && this.kv.get(rec.target);
-      const x = k ? k.x - k.side * 40 : CX + (Math.random() - 0.5) * 200;
-      const y = k ? this.surface(x) - 60 : this.surface(CX) - 30;
+      const x = CX + 150 + (Math.random() - 0.5) * 80;
+      const y = Math.min(this.surface(x), RH - 40) - 30;
       this.fx.push({ t: "flash", x, y, age: 0, size: rec.size });
-      if (k) k.knock = 1;
     } else if (rec.t === "repel") {
       const k = this.kv.get(rec.id);
       if (k) k.flee = true;
     } else if (rec.t === "arrive") {
-      const k = this.kv.get(rec.id);
-      if (k) k.leave = true;
-      if (live && k) this.splash(k.x - k.side * 30, this.surface(k.x) - 80, 0x6fa8ff, 24);
       for (const id of rec.doused) this.jv.delete(id);
     } else if (rec.t === "burnout") {
       this.jv.delete(rec.id);
@@ -254,26 +249,7 @@ export class Renderer {
       if (motion && Math.random() < 0.3) this.parts.push({ x: x0 + len + 4, y: y - 2, vx: (Math.random() - 0.5) * 0.4, vy: -0.6 - Math.random() * 0.5, g: 0, life: 80, max: 80, c: 0xc9c6bf, r: 3, smoke: true });
     });
 
-    // buzzkills wade in on top of the pile
-    const order = [...this.kv.entries()].sort((a, b) => a[1].x - b[1].x);
-    for (const [id, v] of order) {
-      if (v.flee || v.leave) {
-        v.x += v.side * (v.flee ? 520 : 260) * dt;
-        if (v.x < -120 || v.x > RW + 120) { this.kv.delete(id); continue; }
-      } else {
-        v.x += (v.target - v.x) * Math.min(1, dt * 3);
-        if (v.knock) v.x += v.side * 90 * v.knock * dt;
-      }
-      v.knock = Math.max(0, (v.knock || 0) - dt * 2);
-      v.walk += dt * (v.flee ? 14 : 6);
-      const sc = v.size >= 1.6 ? SCALE + 2 : SCALE;
-      const spr = this.sprites[v.variant][Math.floor(v.walk) & 1];
-      const feet = Math.min(RH - 4, this.surface(v.x) + 14);
-      const facingLeft = v.flee || v.leave ? v.side < 0 : v.side > 0;
-      this.blitSprite(spr, Math.round(v.x - (spr.w * sc) / 2), feet - spr.h * sc, sc, facingLeft);
-      if (v.flee) this.bang(Math.round(v.x), feet - spr.h * sc - 40);
-    }
-
+    // buzzkills live in the sim and the trade cards, not on the scene
     for (let i = this.fx.length - 1; i >= 0; i--) {
       const f = this.fx[i];
       f.age += dt * 60;

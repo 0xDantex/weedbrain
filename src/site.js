@@ -418,6 +418,7 @@ async function boot() {
 
   let renderer, at, pan, stats;
   let stageSince = Date.now(), shownStage = -1, lastHud = 0;
+  const recent = [];
   const heroClip = $("hero-clip");
   let row;
 
@@ -445,6 +446,7 @@ async function boot() {
       if (renderer) renderer.handle(r, isLive);
       if (r.t === "trade") {
         row && row(r, isLive);
+        recent.push({ t: live.timeOf(r), side: r.side });
         if (pan) pan.trade(r, live.timeOf(r));
         if (stats && isLive) stats.addTrade(r.blk);
         if (isLive && toast && r.eth > 0) toast.trade(r);
@@ -490,15 +492,18 @@ async function boot() {
     set("hero-joints", `${n} JOINT${n === 1 ? "" : "S"} BURNING`);
     set("hero-time", hms(Date.now() - stageSince));
     set("hash", `${simHash(S)} @${S.step}`);
+    set("g-mood", STAGES[S.stage]);
     set("g-joints", String(n));
-    set("g-pile", `${Math.round(pile * 100)}`);
-    set("g-kills", String(S.kills.length));
-    set("g-mug", S.spilled ? "DOWN" : "FULL");
-    set("g-stopped", `${S.repelled} / ${S.arrived}`);
+    set("g-pile", `${Math.round(pile * 100)}%`);
+    set("g-mug", S.spilled ? "SPILLED" : "FULL");
+    const cut = live.now() - 300000;
+    while (recent.length && recent[0].t < cut) recent.shift();
+    const b5 = recent.filter((x) => x.side > 0).length;
+    set("g-flow", `${b5} / ${recent.length - b5}`);
     if ($("m-joints")) {
+      $("m-mood").style.width = `${Math.round(S.mood * 100)}%`;
       $("m-joints").style.width = `${Math.min(100, (n / 8) * 100)}%`;
       $("m-pile").style.width = `${Math.round(pile * 100)}%`;
-      $("m-kills").style.width = `${Math.min(100, (S.kills.length / 10) * 100)}%`;
     }
     set("c-state", STAGES[S.stage]);
     const f = live.feed;

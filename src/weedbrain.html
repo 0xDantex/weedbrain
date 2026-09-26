@@ -12,6 +12,7 @@
 <meta name="twitter:image" content="og.png">
 <meta name="theme-color" content="#F4F1EA">
 <link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,7 +21,7 @@
 <body data-page="scene">
 
 <header class="top">
-  <a class="logo" href="#"><img src="favicon.png" alt="" width="26" height="26"><span>WEEDBRAIN</span></a>
+  <a class="logo" href="index.html"><img src="logo.webp" alt="" width="34" height="34"><span>WEEDBRAIN</span></a>
   <span class="net mono"><i class="dot"></i>LIVE · pons v2 · robinhood chain</span>
   <nav class="links">
     <a id="x-link" href="#" target="_blank" rel="noopener" hidden>X</a>
@@ -57,11 +58,11 @@
       </div>
     </div>
     <div class="gauges mono">
-      <div class="gauge"><span>JOINTS BURNING</span><b id="g-joints">0</b><i class="meter"><em id="m-joints"></em></i></div>
-      <div class="gauge"><span>BUD PILE · % OF MAX</span><b id="g-pile">0</b><i class="meter"><em id="m-pile"></em></i></div>
-      <div class="gauge"><span>BUZZKILLS INBOUND</span><b id="g-kills">0</b><i class="meter"><em id="m-kills"></em></i></div>
-      <div class="gauge small"><span>MUG</span><b id="g-mug">FULL</b></div>
-      <div class="gauge small"><span>STOPPED / GOT THROUGH</span><b id="g-stopped">0 / 0</b></div>
+      <div class="gauge"><span>MOOD</span><b id="g-mood">-</b><i class="meter mood"><em id="m-mood"></em></i><small>buys calm him down, sells wind him up</small></div>
+      <div class="gauge"><span>JOINTS LIT</span><b id="g-joints">0</b><i class="meter"><em id="m-joints"></em></i><small>every buy lights one, it burns out in about a minute</small></div>
+      <div class="gauge"><span>BUD PILE</span><b id="g-pile">0%</b><i class="meter"><em id="m-pile"></em></i><small>100% at the price high, empty at 80% below it</small></div>
+      <div class="gauge"><span>LAST 5 MIN</span><b id="g-flow">-</b><small>buys / sells</small></div>
+      <div class="gauge small"><span>MUG</span><b id="g-mug">FULL</b><small>a sell past THE MUG spills it, a buy refills it</small></div>
     </div>
   </div>
   <div class="strip mono" id="counters">
