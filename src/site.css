@@ -153,7 +153,7 @@ section { border-bottom: 1px solid var(--rule); padding: 56px 0; scroll-margin-t
 .strip .ctr:last-child { border-right: 0; }
 
 /* ---------- live bench ---------- */
-.bench { display: grid; grid-template-columns: 170px min(calc(100vh - 290px), calc(100% - 458px)) 260px; justify-content: center; gap: 14px; align-items: stretch; }
+.bench { display: grid; grid-template-columns: 150px minmax(0, 1fr) 220px; gap: 14px; align-items: stretch; }
 .scale { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--rule); border-radius: 4px; background: var(--panel); }
 .scale li { display: flex; align-items: center; gap: 8px; padding: 0 10px; flex: 1; font-size: var(--s-1); letter-spacing: 0.1em; color: var(--rule); border-bottom: 1px solid var(--paper); }
 .scale li:last-child { border-bottom: 0; }
@@ -161,9 +161,8 @@ section { border-bottom: 1px solid var(--rule); padding: 56px 0; scroll-margin-t
 .scale li.past { color: var(--dim); }
 .scale li.now { color: var(--ember); font-weight: 600; background: #fff4ee; }
 .scale li.now i { width: 22px; height: 3px; }
-.stage-box { position: relative; aspect-ratio: 1 / 1; width: 100%; justify-self: center; align-self: start; background: #fff; border: 1px solid var(--rule-dark); border-radius: 4px; overflow: hidden; }
-/* the scene is 1280 x 720 with him in the middle; the box shows the middle square */
-.stage-box canvas { position: absolute; top: 0; height: 100%; width: 177.78%; left: -38.89%; display: block; }
+.stage-box { position: relative; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 290px) * 16 / 9)); justify-self: center; align-self: start; background: #fff; border: 1px solid var(--rule-dark); border-radius: 4px; overflow: hidden; }
+.stage-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .stage-box.shake { animation: shake 0.5s linear 2; }
 @keyframes shake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 4px); } }
 .gauges { display: flex; flex-direction: column; gap: 10px; }
@@ -312,7 +311,7 @@ body[data-page="scene"] .live { border: 0; padding-top: 16px; }
   .live .strip { grid-template-columns: repeat(4, 1fr); }
   .hero { grid-template-columns: 1fr; }
   .strip .ctr { border-bottom: 1px solid var(--rule); }
-  .bench { grid-template-columns: 1fr; justify-content: stretch; }
+  .bench { grid-template-columns: 1fr; }
   .bench .stage-box { order: -1; width: 100%; }
   .intro { align-items: stretch; }
   .cabar code { flex: 1; }
@@ -348,6 +347,7 @@ body[data-page="scene"] .live { border: 0; padding-top: 16px; }
   .atlas-view canvas, .atlas-view #callouts { position: relative; aspect-ratio: 1100 / 660; height: auto; }
   #callouts { display: none; }
   .stage-box { aspect-ratio: 1 / 1; }
+  .stage-box canvas { width: 177.78%; left: -38.89%; }
   .toasts { top: 24%; width: 82%; gap: 6px; }
   .toast .amt { display: inline; font-size: var(--s2); margin-right: 8px; }
   .toast:not(:last-child) { display: none; }

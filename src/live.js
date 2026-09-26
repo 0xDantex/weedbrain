@@ -37,6 +37,7 @@ export class Live {
 
   async start() {
     const { cfg, mode, on } = this;
+    for (let attempt = 0; ; attempt++) {
     try {
       if (mode === "demo") {
         // ?at=<ms or ISO time> shows that moment of the demo, &hold freezes it there
@@ -60,10 +61,14 @@ export class Live {
     } catch (e) {
       if (e.code === "bad-address" || e.code === "not-pons") on.error(e.code === "bad-address" ? "NOT AN ADDRESS" : "NOT A PONS TOKEN", e.message);
       else {
-        on.error("CANNOT REACH THE CHAIN", `${e.message}. Retrying in 10 s.`);
-        setTimeout(() => location.reload(), 10000);
+        // keep trying in place instead of stranding the visitor on an error
+        on.progress("LOADING", `the chain node is busy, trying again (${attempt + 1})`, null);
+        await new Promise((r) => setTimeout(r, Math.min(15000, 3000 * (attempt + 1))));
+        continue;
       }
       return false;
+    }
+    break;
     }
     const feed = this.feed;
     if (feed.snap) {

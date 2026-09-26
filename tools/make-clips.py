@@ -42,9 +42,9 @@ def mono(s):
 
 
 def canvas(n, w, h):
-    art = Image.open(FR / f"{n:02d}.webp").convert("RGB")
+    art = Image.open(FR / f"{n:02d}.webp").convert("RGBA")
     out = Image.new("RGB", (w, h), (255, 255, 255))
-    out.paste(art, ((w - art.width) // 2, h - art.height))
+    out.paste(art, ((w - art.width) // 2, h - art.height), art)
     return out
 
 
@@ -99,7 +99,10 @@ def sheet():
     for n, (a, b, slug, name, sub, lvl) in enumerate(CLIPS):
         cx, cy = 10 + (n % cols) * (sw + 10), 44 + (n // cols) * (sh + 62)
         mid = list(range(a, b + 1))[(b - a + 1) // 2]
-        im.paste(Image.open(FR / f"{mid:02d}.webp").convert("RGB").resize((sw, sh), Image.LANCZOS), (cx, cy))
+        fr = Image.open(FR / f"{mid:02d}.webp").convert("RGBA").resize((sw, sh), Image.LANCZOS)
+        tile = Image.new("RGB", (sw, sh), (255, 255, 255))
+        tile.paste(fr, (0, 0), fr)
+        im.paste(tile, (cx, cy))
         d.rectangle([cx, cy + sh, cx + sw, cy + sh + 4], fill=(40, 34, 40))
         d.rectangle([cx, cy + sh, cx + int(sw * lvl), cy + sh + 4], fill=(120, 230, 120) if lvl > 0.5 else (240, 120, 60))
         d.text((cx + 2, cy + sh + 8), f"{n + 1:02d}  {name}", font=font(19), fill=(240, 240, 240))

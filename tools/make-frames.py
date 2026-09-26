@@ -1,6 +1,6 @@
 """Build the scene's assets from the 45 source frames (1400 x 1400).
 
-  art/frames/weedbrain_frame_NN.webp  ->  src/frames/NN.webp   672 x 720, sides faded to white
+  art/frames/weedbrain_frame_NN.webp  ->  src/frames/NN.webp   672 x 720, sides faded to transparent
                                           src/frames/buds.webp the bud texture the pile layer is cut from
 
 The source frames were cut out of a sheet and come in two shapes. Three of
@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "art/frames"
 OUT = ROOT / "src/frames"
 FW, FH = 672, 720
-FADE = 64  # px on the left and right edge, where the picture meets the wide white scene
+FADE = 90  # px on the left and right edge, where the picture meets the wide white scene
 
 
 def frame(n):
@@ -60,8 +60,11 @@ def scene_frame(im):
     ramp = np.ones(FW, np.float32)
     ramp[:FADE] = np.linspace(0, 1, FADE) ** 1.5
     ramp[-FADE:] = ramp[:FADE][::-1]
-    a = a * ramp[None, :, None] + 255 * (1 - ramp[None, :, None])
-    return Image.fromarray(a.clip(0, 255).astype(np.uint8))
+    # the sides fade to transparent, so the backdrop the scene paints behind
+    # the frame shows through instead of a white band
+    alpha = (ramp[None, :] * 255).repeat(FH, 0)
+    rgba = np.dstack([a.clip(0, 255), alpha]).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
 
 
 def buds():
@@ -103,7 +106,7 @@ def main():
     nums = sorted(int(p.stem[-2:]) for p in SRC.glob("weedbrain_frame_*.webp"))
     assert len(nums) == 45, nums
     for n in nums:
-        scene_frame(frame(n)).save(OUT / f"{n:02d}.webp", quality=88, method=6)
+        scene_frame(frame(n)).save(OUT / f"{n:02d}.webp", quality=88, method=6, exact=True)
     buds()
     total = sum(p.stat().st_size for p in OUT.glob("*.webp"))
     print(f"{len(nums)} frames + buds.webp, {total // 1024} KB")

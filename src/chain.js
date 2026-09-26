@@ -117,7 +117,8 @@ export function makeRpc(url = CHAIN.rpc, { logsSpacingMs = 150, retries = 6, max
       }
       if (json.error) {
         const msg = String(json.error.message || "");
-        if (/exceeds limit|Missing or invalid parameters|query returned more than/i.test(msg)) {
+        // a range too heavy for the node comes back as a refusal or as a timeout
+        if (/exceeds limit|Missing or invalid parameters|query returned more than|timed out|timeout|deadline/i.test(msg)) {
           throw new ChainError("too-many", msg);
         }
         if (json.error.code === 429 && attempt < retries) {
@@ -341,17 +342,25 @@ const MIN_CHUNK = 200;
 export async function getLogsChunked(rpc, filter, from, to, { chunk = MAX_CHUNK, onProgress } = {}) {
   const logs = [];
   let start = from;
+  let fails = 0;
   while (start <= to) {
     const end = Math.min(to, start + chunk - 1);
     try {
       const batch = await rpc.call("eth_getLogs", [{ ...filter, fromBlock: hexNum(start), toBlock: hexNum(end) }]);
       logs.push(...batch);
       start = end + 1;
+      fails = 0;
       chunk = Math.min(MAX_CHUNK, chunk * 2);
       if (onProgress) onProgress((start - from) / Math.max(1, to - from + 1));
     } catch (e) {
       if (e.code === "too-many" && chunk > MIN_CHUNK) {
         chunk = Math.max(MIN_CHUNK, Math.floor(chunk / 4));
+        continue;
+      }
+      // anything else (a busy node, a dropped connection): wait and try the
+      // same range again a few times before giving up on the whole read
+      if (e.code !== "bad-address" && e.code !== "not-pons" && fails++ < 5) {
+        await sleep(1000 * fails);
         continue;
       }
       throw e;
