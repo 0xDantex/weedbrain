@@ -114,6 +114,14 @@ export class Renderer {
     // bud bumps along the top of the pile, fixed for the page's life
     this.bumps = [];
     for (let x = -20; x < RW + 40; x += 18 + Math.random() * 16) this.bumps.push({ x, r: 12 + Math.random() * 20 });
+    // the bumpy outline, worked out once
+    this.bumpAt = new Float32Array(RW);
+    for (let x = 0; x < RW; x++) {
+      for (const u of this.bumps) {
+        const dx = x - u.x;
+        if (dx > -u.r && dx < u.r) this.bumpAt[x] = Math.max(this.bumpAt[x], Math.sqrt(u.r * u.r - dx * dx) * 0.55);
+      }
+    }
     this.sprites = KILL_SPRITES.map((d) => [buildSprite(d, 0), buildSprite(d, 1)]);
     this.reduced = reducedMotion;
     this.jv = new Map();
@@ -233,16 +241,14 @@ export class Renderer {
       const d = (x - CX) / 420;
       const out = Math.max(0, Math.abs(x - CX) - half) / (RW / 2 - half);
       let h = h0 * (0.5 + 0.5 * Math.exp(-d * d)) + bank * Math.sin(Math.min(1, out) * Math.PI / 2) ** 1.3;
-      let b = 0;
-      for (const u of this.bumps) {
-        const dx = x - u.x;
-        if (dx > -u.r && dx < u.r) b = Math.max(b, Math.sqrt(u.r * u.r - dx * dx) * 0.55);
-      }
-      h += b * bumpAmp - (h0 > 0 ? 6 : 0);
+      h += this.bumpAt[x] * bumpAmp - (h0 > 0 ? 6 : 0);
       top[x] = h <= 0 ? RH : Math.round(RH - h);
     }
     const p = this.pile;
-    p.fill(0);
+    let minTop = RH;
+    for (let x = 0; x < RW; x++) if (top[x] < minTop) minTop = top[x];
+    p.fill(0, 0, RW * minTop);
+    for (let x = 0; x < RW; x++) for (let y = minTop; y < top[x]; y++) p[y * RW + x] = 0;
     const edge = abgr(0x1f2410);
     const shade = abgr(0x3a4418);
     for (let x = 0; x < RW; x++) {
