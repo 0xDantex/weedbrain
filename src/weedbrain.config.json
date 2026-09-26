@@ -3,10 +3,12 @@
   "ticker": "WBRAIN",
   "ca": "",
   "mode": "direct",
-  "token": "0xa6f1951bc0b13893756f7ae51a4956f97d485081",
+  "token": "0x86720fdf293fa64b19181f49af61d5ffcf7471f4",
   "genesisBlock": 0,
   "lookbackMin": 60,
   "pollMs": 1500,
   "buyUrl": "https://ponsportal.fun/token/{token}",
+  "x": "",
+  "github": "",
   "dataUrl": "/data/"
 }

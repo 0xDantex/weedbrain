@@ -16,6 +16,24 @@ The story has a hinge. At first he is flat out in the pile with his shades on, t
 
 ![A big sell knocks the mug over: SPILLED](docs/img/spilled.png)
 
+## The site
+
+The site is built like a lab instrument, not a crypto landing page: paper background, thin rules, one accent (the ember orange), monospaced tabular numbers everywhere, headings small and rare.
+
+![The hero: the live clip of his current state and the instrument strip](docs/img/site-hero.png)
+
+- **The header** stays on top: the contract in full with a copy button and the buy button, which stays inactive until `ca` is set.
+- **The hero** plays the clip of his current state. Under it: the stage, the joints burning, the time in state, then a strip of counters: holders, trades in 24 h, market cap in ETH, the stage, the last update and the block.
+- **The live specimen** is the scene, with a ten-step scale on the left and gauges on the right (joints burning, the bud pile in percent of its maximum, buzzkills inbound, the mug) and the trade tape under it, every row a Blockscout link. Each trade also pops a card in the corner for 4 s: a buy in orange with `+ETH` and `a joint lands`, a sell in red with `buzzkill incoming`. When the mug goes, a full-width `THE MUG IS DOWN` card drops and the scene shakes.
+- **The brain of a joint** is a made-up anatomy plate: a point cloud of about 58,000 neurons packed into bud-shaped lumps, with thin shells where the lobes end, drawn with three.js and turning slowly (drag to rotate). Six regions answer to the chain: a buy lights the CB1 LOBE, a sell heats the EMBER NUCLEUS, a buzzkill wakes the PARANOIA TRACT, a spill jolts the MUG CORTEX, the pile sets the BUD GANGLION and the MUNCHIE NERVE never stops. Hovering a region or its label dims the rest and opens a card. Under it a coupling matrix, the buys and sells of the last 5 minutes with the mood line and a count of cell types, all moving with the trades. It says it is a joke under the plate, because it is.
+- **The rest:** the three rules, the ten states (hover plays the clip, the current one is outlined), what this is not, the footer.
+
+![The live specimen](docs/img/site-live.png)
+
+![The brain of a joint, the CB1 LOBE hovered](docs/img/site-brain.png)
+
+Holders are counted by replaying the token's `Transfer` events from its launch block in the browser, because the Blockscout API answers this network with a Cloudflare challenge and the Pons API allows 8 calls a minute. The curve, the pool manager and the zero address are not holders. The market cap is the last trade price times the total supply, in ETH. `weedbrain.html` is the live specimen alone, for a second screen or a stream.
+
 ## How it maps to the chain
 
 Nothing here is a metaphor. Each rule maps to one thing on the chain.
@@ -160,9 +178,12 @@ The 45 source frames are 1400 x 1400 (`art/frames`). They were cut out of a shee
 
 ```
 src/
-  index.html              landing page
-  weedbrain.html          the live scene
-  app.js app.css          the page: boot, loop, HUD, trade feed
+  index.html              the site
+  weedbrain.html          the live specimen alone
+  site.js site.css        the pages: header, hero, bench, toasts, tape, atlas, panels
+  live.js                 config, feed and the sim loop the pages share
+  brain3d.js brain.js     the brain plate (WebGL point cloud, flat fallback)
+  stats.js                holders, trades in 24 h, market cap
   engine.js               the simulation (SIM), no drawing
   render.js sprites.js    the renderer (RENDER), no state
   feed.js                 trade log, direct / collector / demo sources
@@ -184,4 +205,5 @@ docs/                     ARCHITECTURE, ECONOMY, FEED, STORAGE, RUNBOOK, TESTPLA
 - In direct mode each browser reads the RPC on its own. Viewers should agree, but nothing forces them to.
 - The price and the high are used inside the simulation to size the pile. The page never shows a price.
 - For tokens paired with something other than ETH the size mapping and the spill size still read the quote amount, which is then not ETH. My token is ETH-paired.
-- The buzzkills, the joints in the pile and the lighter are pixel sprites drawn by code. The character is the art set and nothing else.
+- The buzzkills (ink silhouettes), the joints in the pile and the lighter are pixel sprites drawn by code. The character is the art set and nothing else.
+- The brain plate is a joke with real inputs: the regions, neuron counts and frequencies are made up, only their movement comes from the chain. It uses three.js from cdnjs, the only script loaded from outside and falls back to a flat drawing without WebGL.

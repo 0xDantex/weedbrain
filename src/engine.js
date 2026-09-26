@@ -223,7 +223,7 @@ export function applyEvent(S, ev) {
 
   S.vol += q;
   const spawned = [];
-  emit(S, { t: "trade", side, eth: q, tok: ev.tok || 0, tx: ev.tx || "", blk: ev.blk || 0, step: S.step, spawned });
+  emit(S, { t: "trade", side, eth: q, tok: ev.tok || 0, tx: ev.tx || "", blk: ev.blk || 0, trader: ev.trader || "", step: S.step, spawned });
   if (q >= SIM.DUST) {
     const thr = Math.max(SIM.SIZE_REF, S.flow * SIM.SPAWN_STEPS);
     const evVol = Math.max(thr, q);
@@ -250,7 +250,7 @@ export function applyEvent(S, ev) {
       if (S.buyAcc > thr * (SIM.SPAWN_MAX + 1)) S.buyAcc = thr;
     } else {
       // one big sell knocks the mug over: the event the whole story turns on
-      if (!S.spilled && S.mugAge >= SIM.MUG_SAFE && q >= Math.max(SIM.SPILL_ETH, S.flow * SIM.SPAWN_STEPS * SIM.SPILL_FLOW)) spill(S, "sell", ev.tx);
+      if (!S.spilled && S.mugAge >= SIM.MUG_SAFE && q >= Math.max(SIM.SPILL_ETH, S.flow * SIM.SPAWN_STEPS * SIM.SPILL_FLOW)) spill(S, "sell", ev.tx, q);
       S.sellAcc += q;
       while (S.sellAcc >= thr && k < SIM.SPAWN_MAX) {
         const take = Math.min(S.sellAcc, evVol);
@@ -269,14 +269,14 @@ export function applyEvent(S, ev) {
   }
 }
 
-function spill(S, cause, tx) {
+function spill(S, cause, tx, eth = 0) {
   S.spilled = 1;
   S.boil = 0;
   S.dry = 0;
   // the spill always plays first, then he lands two stages below where he was
   const to = Math.min(9, Math.max(MUG + 1, S.stage + 2));
   S.mood = Math.max(S.mood, to / 10 + 0.03);
-  emit(S, { t: "spill", cause, tx: tx || "", from: S.stage, to });
+  emit(S, { t: "spill", cause, tx: tx || "", eth, from: S.stage, to });
   if (S.stage !== MUG + 1) {
     emit(S, { t: "stage", from: S.stage, to: MUG + 1 });
     S.stage = MUG + 1;

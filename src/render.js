@@ -7,7 +7,7 @@
 // putImageData per frame: the bud pile, the joints lying in it, the
 // buzzkills, lighter flashes and smoke.
 
-import { KILL_SPRITES, PAL } from "./sprites.js";
+import { KILL_SPRITES } from "./sprites.js";
 
 export const RW = 1280;
 export const RH = 720;
@@ -63,15 +63,21 @@ export function clipFrame(clip, t, reduced) {
   return seq[0];
 }
 
+// Buzzkills are drawn as ink silhouettes, like specimens on a slide: the
+// shape (cap, curlers, suit, collar) tells them apart, not the colour.
+const INK = 0x2a2620;
+const INK_LIT = 0x4a443a;
+
 function buildSprite(def, frame) {
   const rows = def.rows.map((r) => r.padEnd(14, ".").slice(0, 14));
   const h = rows.length + 6;
   const px = new Uint32Array(14 * h);
+  // outline pixels stay ink, fills go one step lighter so the shape reads
   rows.forEach((r, y) => {
-    for (let x = 0; x < 14; x++) if (r[x] !== ".") px[y * 14 + x] = abgr(PAL[r[x]]);
+    for (let x = 0; x < 14; x++) if (r[x] !== ".") px[y * 14 + x] = abgr(r[x] === "k" ? INK : INK_LIT);
   });
-  const [leg, shoe] = def.legs.map((c) => abgr(c));
-  const out = abgr(PAL.k);
+  const leg = abgr(INK_LIT), shoe = abgr(INK);
+  const out = abgr(INK);
   const legX = frame ? [3, 8] : [4, 7];
   const lift = frame ? [0, 1] : [1, 0];
   for (let i = 0; i < 2; i++) {
@@ -89,7 +95,7 @@ export class Renderer {
    * art: canvas for the character, fx: canvas for this buffer.
    * frames: Map frame number -> image. buds: ImageData of buds.webp.
    */
-  constructor(art, fx, frames, buds, { reducedMotion = false, onPopup = () => {} } = {}) {
+  constructor(art, fx, frames, buds, { reducedMotion = false } = {}) {
     for (const c of [art, fx]) { c.width = RW; c.height = RH; }
     this.actx = art.getContext("2d");
     this.actx.imageSmoothingQuality = "high";
@@ -107,7 +113,6 @@ export class Renderer {
     for (let x = -20; x < RW + 40; x += 18 + Math.random() * 16) this.bumps.push({ x, r: 12 + Math.random() * 20 });
     this.sprites = KILL_SPRITES.map((d) => [buildSprite(d, 0), buildSprite(d, 1)]);
     this.reduced = reducedMotion;
-    this.onPopup = onPopup;
     this.jv = new Map();
     this.kv = new Map();
     this.fx = [];
@@ -123,6 +128,8 @@ export class Renderer {
     if (rec.t === "joint" && !rec.merged && live) {
       this.jv.set(rec.id, { drop: 0, slot: Math.random() });
     } else if (rec.t === "flash" && live) {
+      // the extra drag on a buy: a puff off his small joint
+      for (let i = 0; i < 14; i++) this.parts.push({ x: CX + 150 + Math.random() * 60, y: 240 + Math.random() * 40, vx: 0.4 + Math.random() * 0.8, vy: -0.8 - Math.random() * 0.8, g: 0, life: 70, max: 70, c: 0xc9c6bf, r: 6, smoke: true });
       const k = rec.target && this.kv.get(rec.target);
       const x = k ? k.x - k.side * 40 : CX + (Math.random() - 0.5) * 200;
       const y = k ? this.surface(x) - 60 : this.surface(CX) - 30;
@@ -140,8 +147,6 @@ export class Renderer {
       this.jv.delete(rec.id);
     } else if (rec.t === "spill" && live) {
       this.splash(CX + 60, RH - 260, 0x5a2e14, 70);
-    } else if (rec.t === "trade" && live && rec.eth > 0) {
-      this.onPopup({ side: rec.side, tok: rec.tok, x: rec.side > 0 ? CX : CX + 380, y: rec.side > 0 ? RH - 330 : RH - 360 });
     }
   }
 
@@ -246,7 +251,7 @@ export class Renderer {
       const e = 1 - (1 - v.drop) * (1 - v.drop);
       const y = Math.round(-40 + (rest + 40) * e);
       this.joint(x0, y, len, tm, j.id);
-      if (motion && Math.random() < 0.3) this.parts.push({ x: x0 + len + 4, y: y - 2, vx: (Math.random() - 0.5) * 0.4, vy: -0.6 - Math.random() * 0.5, g: 0, life: 80, max: 80, c: 0xb9b3aa, r: 3, smoke: true });
+      if (motion && Math.random() < 0.3) this.parts.push({ x: x0 + len + 4, y: y - 2, vx: (Math.random() - 0.5) * 0.4, vy: -0.6 - Math.random() * 0.5, g: 0, life: 80, max: 80, c: 0xc9c6bf, r: 3, smoke: true });
     });
 
     // buzzkills wade in on top of the pile

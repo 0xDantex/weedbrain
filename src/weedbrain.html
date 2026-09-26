@@ -3,66 +3,81 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WEEDBRAIN - live</title>
-<meta name="description" content="A joint that smokes himself. Buys throw him joints, sells send buzzkills to put them out and the bud pile he lies in melts with the drawdown.">
+<title>WEEDBRAIN - live specimen</title>
+<meta name="description" content="Buy weed legally. It is not a plant, it is a token: a joint whose mood comes from the trades of one Pons v2 token on Robinhood Chain.">
 <meta property="og:title" content="WEEDBRAIN">
-<meta property="og:description" content="A joint that smokes himself. Buys throw him joints, sells send buzzkills to put them out and the bud pile he lies in melts with the drawdown.">
+<meta property="og:description" content="Buy weed legally. It is not a plant, it is a token: a joint whose mood comes from the trades of one Pons v2 token on Robinhood Chain.">
 <meta property="og:image" content="og.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="og.png">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#F4F1EA">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tiny5&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
 </head>
-<body data-mode="">
-<header class="bar">
-  <a class="brand" href="index.html"><img src="favicon.png" alt="" width="24" height="24"><span>WEEDBRAIN</span><em data-ticker></em></a>
-  <span class="watching">watching <b id="watching">-</b> <a id="token" target="_blank" rel="noopener">demo generator</a></span>
-  <a class="btn" id="buy" target="_blank" rel="noopener">Buy</a>
+<body data-page="scene">
+
+<header class="top">
+  <a class="logo" href="#"><img src="favicon.png" alt="" width="26" height="26"><span>WEEDBRAIN</span></a>
+  <div class="ca">
+    <span class="k">CA</span>
+    <code id="ca">not launched yet</code>
+    <button class="copy" id="copy" type="button" hidden>COPY</button>
+    <span class="net">pons v2 · robinhood chain</span>
+  </div>
+  <nav class="links">
+    <a id="x-link" href="#" target="_blank" rel="noopener" hidden>X</a>
+    <a id="gh-link" href="#" target="_blank" rel="noopener" hidden>GITHUB</a>
+    <a class="buy" data-buy href="#" aria-disabled="true">BUY</a>
+  </nav>
 </header>
-<main class="app">
-  <section class="stagewrap">
-    <div class="frame" id="frame">
+
+<main>
+<!-- 3. live specimen -->
+<section class="live" id="live">
+  <div class="sec-head">
+    <h2>LIVE SPECIMEN</h2>
+    <span class="mono dim" id="watching">watching the demo generator</span>
+    <span class="badge" id="badge">-</span>
+    <span class="mono hash" id="hash">-</span>
+  </div>
+  <div class="bench">
+    <ol class="scale mono" id="scale"></ol>
+    <div class="stage-box" id="frame">
+      <div class="ticks"><i></i><i></i><i></i><i></i></div>
       <canvas id="art" width="1280" height="720" aria-hidden="true"></canvas>
       <canvas id="scene" width="1280" height="720" aria-label="The joint in his bud pile, drawn from the trade log"></canvas>
-      <div id="popups" aria-hidden="true"></div>
-      <div class="hud tl">
-        <div id="stage" class="stage">-</div>
-        <div id="note" class="note">-</div>
-        <div class="level"><b id="levelbar"></b></div>
-      </div>
-      <div class="hud tr">
-        <span id="badge" class="badge">-</span>
-        <span id="hash" class="hash">-</span>
-      </div>
-      <div class="demo-stripe">DEMO - generated trades, nothing here is real</div>
-      <div id="stale" class="notice" hidden></div>
-      <div id="empty" class="notice" hidden>No trades yet. He waits.</div>
-      <div id="screen" hidden>
+      <span class="plate">FIG. 2 · SAGITTAL, 1:1</span>
+      <div class="demo-band">DEMO · generated trades, nothing here is real</div>
+      <div id="stale" class="notice mono" hidden></div>
+      <div id="empty" class="notice mono" hidden>NO TRADES YET. HE WAITS.</div>
+      <div id="screen" class="screen" hidden>
         <div class="box">
           <div id="screen-title" class="title">LOADING</div>
-          <div id="screen-body" class="body"></div>
+          <div id="screen-body" class="mono dim"></div>
           <div id="screen-bar" class="pbar"><b></b></div>
         </div>
       </div>
     </div>
-    <div class="stats">
-      <span><i>pile</i> <b id="pile">-</b></span>
-      <span><i>mug</i> <b id="mug">-</b></span>
-      <span><i>burning</i> <b id="joints">-</b></span>
-      <span><i>buzzkills</i> stopped <b id="repelled">0</b> of <b id="total">0</b>, got through <b id="arrived">0</b>, walking <b id="walking">0</b></span>
+    <div class="gauges mono">
+      <div class="gauge"><span>JOINTS BURNING</span><b id="g-joints">0</b><i class="meter"><em id="m-joints"></em></i></div>
+      <div class="gauge"><span>BUD PILE · % OF MAX</span><b id="g-pile">0</b><i class="meter"><em id="m-pile"></em></i></div>
+      <div class="gauge"><span>BUZZKILLS INBOUND</span><b id="g-kills">0</b><i class="meter"><em id="m-kills"></em></i></div>
+      <div class="gauge small"><span>MUG</span><b id="g-mug">FULL</b></div>
+      <div class="gauge small"><span>STOPPED / GOT THROUGH</span><b id="g-stopped">0 / 0</b></div>
     </div>
-  </section>
-  <aside class="feed" id="feed">
-    <h2>Last 20 trades</h2>
-    <div class="feed-head"><span>time</span><span></span><span>tokens</span><span>on scene</span></div>
-    <div id="feed-list"></div>
-  </aside>
+  </div>
+  <div class="tape mono">
+    <div class="tape-head"><span>TIME</span><span>SIDE</span><span class="r">ETH</span><span class="r">TOKENS</span><span>WALLET</span><span>ON SCENE</span></div>
+    <div id="tape"></div>
+  </div>
+</section>
+
 </main>
-<button id="feed-toggle" class="feed-toggle">trades</button>
-<script type="module" src="app.js"></script>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="bigtoast" id="bigtoast" hidden><b>THE MUG IS DOWN</b><span class="mono" id="bigtoast-sub"></span></div>
+<script type="module" src="site.js"></script>
 </body>
 </html>

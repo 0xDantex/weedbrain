@@ -12,6 +12,12 @@ The sim talks to the renderer through `S.out`, a queue of plain records (`joint`
 
 The same `engine.js` file is imported by the page, the collector, the command-line tools and the tests. There is no copy of the sim anywhere.
 
+## The pages
+
+`src/live.js` owns the config, the feed, the catch-up and the sim loop and reports through callbacks: progress, error, ready, every out record and every frame. `src/site.js` hangs everything visible on those callbacks: the scene renderer, the hero clip, the gauges, the tape, the trade cards, the counters from `src/stats.js` and the brain plate. Both HTML pages load the same script; the fullscreen page simply has fewer elements for it to fill.
+
+The brain plate (`src/brain3d.js`) is a three.js point cloud. Its points are generated once from a fixed seed: about 60% of them in 420 bud-shaped lumps packed through the volume of two hemispheres, a cerebellum and a stem, the rest on the folded surface of those parts. Every point belongs to the nearest of six region centres. A chain event sets a burst of that region's points to flash, the flash decays each frame and the shader colours flashing points from ember to yellow. Hover dims every other region through a uniform. It never feeds the sim.
+
 ## The step
 
 A step is 50 ms. The step of an event is `(block - genesis block) * 2`, because a block on this chain is about 101 ms (`tools/rpc-check.js` measured 0.1008 s per block over the last 1,000,000 blocks). The sim clock is therefore made of block numbers. No viewer's clock, time zone or frame rate enters it.
