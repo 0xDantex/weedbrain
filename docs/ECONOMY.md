@@ -43,7 +43,7 @@ Trades under the threshold show "adds up" in the feed: they are real and counted
 | `JOINT_MAX` | 4 | the longest a merged joint gets |
 | `BURN` | 1/900 per step | a size-1 joint burns 45 s |
 
-Both logs peaked at 8 joints on screen.
+Both logs peaked at 8 joints in the pile.
 
 ## Buzzkills and the lighter
 
@@ -53,50 +53,67 @@ When one reaches him it puts out his longest joint, two if its size is at least 
 
 Every buy that spawns a joint also fires the lighter at the nearest buzzkill: it is pushed back by `PUSH * size` (0.32) and loses `HIT * size` (1.4) of its `2.2 * size` hit points. At zero it runs off. On SNIFFR 67 were stopped and 73 got through; on FOMOFIED 63 and 111.
 
-## Haze
+## The pile
 
 ```
 drop   = clamp(1 - px / high, 0, 1), capped at DD_CAP (0.88)
 drop  *= 0.25 + 0.75 * min(1, step / BIRTH_GRACE)
-haze  -> haze + (drop + debt - haze) * 0.06 every step
+melt  -> melt + (drop + debt - melt) * 0.06 every step
 debt  *= DEBT_HEAL (0.99955) every step, a half-life of about 77 s
+pile   = 1 - min(1, melt) / 0.8
 ```
+
+At the high the pile reaches his waist (250 px of the 720 px scene at the centre, half that at the edges). At 80% melt it is gone and he lies on bare ground.
 
 ## Fresh launch
 
-A memecoin in its first minutes can run thousands of times its first price and then give back half. Measured against the first trade, a high like that would put him at the gun minutes after launch for a normal retrace. Three things stop it:
+A memecoin in its first minutes can run thousands of times its first price and then give back half. Measured against the first trade, a high like that would melt the pile to nothing minutes after launch for a normal retrace. Three things stop it:
 
 - the high only moves on closed one-minute bars (`BAR_STEPS` 1200), not on single trades
 - it grows at most 4x per bar (`ATH_MAX_STEP`) and a run of rising bars loosens that by 3x per bar (`ATH_RUN_BOOST`)
 - the drawdown counts at 25% at genesis and ramps to full weight over 15 minutes (`BIRTH_GRACE` 18,000 steps)
 
-`test/economy.test.js` runs a launch that pumps past 1,000x in its first minute and retraces 47% over the next two on two-sided flow: he does not reach ARMED within the first three minutes.
+`test/economy.test.js` runs a launch that pumps past 1,000x in its first minute and retraces 47% over the next two on two-sided flow: he does not reach BLAST within the first three minutes.
 
-A version of that test with only sells after the pump does reach the gun, from the debt of buzzkills getting through, not from the drawdown. I kept that behaviour: two minutes of nothing but sells is exactly what the gun is for.
-
-## Mood and stages
+## Mood and the mug
 
 ```
 high  = burning / (burning + HIGH_REF)          HIGH_REF 1.5
-mood -> (1 - high) * 0.45 + haze * 0.55, at most MOOD_RATE (1/600) per step
+mood -> (1 - high) * 0.25 + melt * 0.75, at most MOOD_RATE (1/600) per step
 stage = floor(mood * 10), with 0.015 of hysteresis
 ```
 
-So a full room with no drawdown is CANDY (0), an empty ashtray with no drawdown is COLD (4, sober and annoyed) and an empty ashtray at the bottom of the chart is ARMED (9). The mood can cross the whole range in no less than 30 s, so every stage in between plays out. Each stage owns five of the 50 frames and the clip plays through by the middle of the stage's band so the stage reads as itself most of the time.
+A full pile with the room full of joints is SHADES OFF (0). Nothing burning and nothing melted is THE MUG (2): sober, reaching for a drink. Nothing burning on bare ground is BLAST (9).
 
-Time per stage on the real logs:
+The mug splits that line in two:
 
-| stage | SNIFFR | FOMOFIED |
+| rule | constant |
+|---|---|
+| while the mug is up the mood cannot reach SPILLED | stage 3 starts at mood 0.3 |
+| a sell of at least `max(SPILL_ETH, flow * SPAWN_STEPS * SPILL_FLOW)` knocks it over | 0.1 ETH, 5 |
+| a fresh mug cannot be knocked over by a sell for `MUG_SAFE` steps | 3,600 (3 min) |
+| the mood wanting past THE MUG for `SPILL_BOIL` steps tips it over too | 600 (30 s) |
+| a spill shows SPILLED for `SPILL_HOLD` steps, then he lands two stages below where he was | 40 (2 s) |
+| while the mug is down the mood cannot go back above SPILLED | |
+| wanting back above SPILLED for `REFILL_STEPS` brings a fresh mug | 200 (10 s) |
+
+The boil rule is there because a token can bleed on nothing but small sells. Without it he would sit at THE MUG through a 90% dump.
+
+I tuned these on the two real logs. The first try (a spill at 0.045 ETH, no grace for a fresh mug, a refill only after a deep high) left him in SPILLED 42% and 46% of the time. The numbers now, from `tools/economy.js`:
+
+| | SNIFFR | FOMOFIED |
 |---|---|---|
-| CANDY | 13.6% | 7.5% |
-| SITTING UP | 7.7% | 13.3% |
-| SMOKING | 15.2% | 22.2% |
-| COMING DOWN | 14.5% | 24.0% |
-| COLD | 9.9% | 13.9% |
-| TEETH | 9.7% | 7.1% |
-| FURIOUS | 11.8% | 6.3% |
-| HANDS UP | 4.8% | 5.2% |
-| RAGING | 6.0% | 0.5% |
-| ARMED | 6.8% | 0.0% |
+| spills | 4 (2 by a big sell, 2 boiled over) | 8 (3 by a big sell, 5 boiled over) |
+| fresh mugs | 3 | 7 |
+| SHADES OFF | 12.9% | 8.6% |
+| EYES HEAVY | 3.6% | 12.8% |
+| THE MUG | 27.0% | 36.8% |
+| SPILLED | 8.1% | 18.0% |
+| SOAKED | 19.8% | 9.1% |
+| FISTS | 9.4% | 7.7% |
+| SUIT ON | 3.3% | 5.0% |
+| AIMING | 1.7% | 1.9% |
+| FIRING | 7.2% | 0.0% |
+| BLAST | 7.1% | 0.0% |
 
-FOMOFIED never hit the gun in its 35 minutes. SNIFFR launched, pumped and dumped inside its 25 and went through all ten.
+FOMOFIED never hit the bottom in its 35 minutes. SNIFFR launched, pumped and dumped inside its 25 and went through all ten.

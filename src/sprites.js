@@ -1,4 +1,4 @@
-// Hand-drawn pixel sprites for everything around the reaper. One char is one
+// Hand-drawn pixel sprites for the buzzkills. One char is one
 // pixel; "." is transparent. Palettes map chars to 0xRRGGBB.
 
 export const PAL = {

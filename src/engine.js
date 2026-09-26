@@ -1,4 +1,4 @@
-// WEED BRAIN simulation. Everything that decides the reaper's fate lives
+// WEEDBRAIN simulation. Everything that decides the joint's fate lives
 // here and nothing here draws. The state is a pure function of
 // (genesis seed, ordered event log, step number): no Math.random, no clock,
 // no frame rate. Side effects for the renderer go into S.out as plain
@@ -29,7 +29,14 @@ export const SIM = {
   DOUSE_DEBT: 0.05,
   DEBT_HEAL: 0.99955,
   HIGH_REF: 1.5, // burning length at which the high is half way
-  MOOD_RATE: 1 / 600, // full sweep from candy to armed takes 30 s at least
+  MOOD_RATE: 1 / 600, // a full sweep from SHADES OFF to BLAST takes 30 s at least
+  SPILL_ETH: 0.1, // a sell at least this big (and SPILL_FLOW entities' worth) knocks the mug over
+  SPILL_FLOW: 5,
+  SPILL_BOIL: 600, // or the mood wanting past THE MUG for 30 s straight
+  REFILL_MOOD: 0.3, // spilled, wanting back above SPILLED for REFILL_STEPS brings a fresh mug
+  REFILL_STEPS: 200,
+  MUG_SAFE: 3600, // a fresh mug cannot be knocked over by a sell for 3 minutes
+  SPILL_HOLD: 40, // steps SPILLED stays on screen after the mug goes, so the spill always plays
   STAGE_HYST: 0.015,
   BAR_STEPS: 1200, // ATH is taken from closed one-minute bars
   ATH_MAX_STEP: 4,
@@ -40,9 +47,17 @@ export const SIM = {
 };
 
 export const STAGES = [
-  "CANDY", "SITTING UP", "SMOKING", "COMING DOWN", "COLD",
-  "TEETH", "FURIOUS", "HANDS UP", "RAGING", "ARMED",
+  "SHADES OFF", "EYES HEAVY", "THE MUG", "SPILLED", "SOAKED",
+  "FISTS", "SUIT ON", "AIMING", "FIRING", "BLAST",
 ];
+
+export const STAGE_NOTES = [
+  "flat out in the pile", "smoking, going nowhere", "reaching for a drink", "it goes all over him", "no drink, no patience",
+  "teeth grinding, first tremors", "cold and done talking", "steadies it at the camera", "muzzle flash, shells", "the whole frame goes",
+];
+
+/** THE MUG is the last stage before the spill, SPILLED the first after it. */
+export const MUG = 2;
 
 export const KILL_VARIANTS = ["COP", "MOM", "FED", "PRIEST"];
 
@@ -102,7 +117,7 @@ export function genesis(seed) {
     step: 0,
     px: 0, pxAth: 0, bar: -1, barHi: 0, barClose: 0, athRun: 0,
     flow: 0, vol: 0, buyAcc: 0, sellAcc: 0,
-    debt: 0, haze: 0, mood: 0.45, high: 0, stage: 4,
+    debt: 0, melt: 0, mood: 0.25, high: 0, stage: MUG, spilled: 0, boil: 0, dry: 0, mugAge: SIM.MUG_SAFE, hold: 0,
     joints: [], kills: [],
     nextId: 1,
     buys: 0, sells: 0, repelled: 0, arrived: 0, doused: 0, evCount: 0,
@@ -234,6 +249,8 @@ export function applyEvent(S, ev) {
       }
       if (S.buyAcc > thr * (SIM.SPAWN_MAX + 1)) S.buyAcc = thr;
     } else {
+      // one big sell knocks the mug over: the event the whole story turns on
+      if (!S.spilled && S.mugAge >= SIM.MUG_SAFE && q >= Math.max(SIM.SPILL_ETH, S.flow * SIM.SPAWN_STEPS * SIM.SPILL_FLOW)) spill(S, "sell", ev.tx);
       S.sellAcc += q;
       while (S.sellAcc >= thr && k < SIM.SPAWN_MAX) {
         const take = Math.min(S.sellAcc, evVol);
@@ -250,6 +267,21 @@ export function applyEvent(S, ev) {
       if (S.sellAcc > thr * (SIM.SPAWN_MAX + 1)) S.sellAcc = thr;
     }
   }
+}
+
+function spill(S, cause, tx) {
+  S.spilled = 1;
+  S.boil = 0;
+  S.dry = 0;
+  // the spill always plays first, then he lands two stages below where he was
+  const to = Math.min(9, Math.max(MUG + 1, S.stage + 2));
+  S.mood = Math.max(S.mood, to / 10 + 0.03);
+  emit(S, { t: "spill", cause, tx: tx || "", from: S.stage, to });
+  if (S.stage !== MUG + 1) {
+    emit(S, { t: "stage", from: S.stage, to: MUG + 1 });
+    S.stage = MUG + 1;
+  }
+  S.hold = SIM.SPILL_HOLD;
 }
 
 function closeBar(S) {
@@ -307,24 +339,45 @@ export function simStep(S) {
   }
   if (burning < 0) burning = 0;
 
-  // haze: drawdown from the ATH plus debt from buzzkills that got through
+  // melt: how much of the bud pile is gone. The drawdown from the high plus
+  // the debt of buzzkills that got through.
   let drop = S.pxAth > 0 && S.px > 0 ? cl(1 - S.px / S.pxAth, 0, 1) : 0;
   const ramp = SIM.BIRTH_GRACE > 0 ? cl(S.step / SIM.BIRTH_GRACE, 0, 1) : 1;
   drop = Math.min(drop, SIM.DD_CAP) * (0.25 + 0.75 * ramp);
-  const hazeT = cl(drop + S.debt, 0, 1.05);
-  S.haze += (hazeT - S.haze) * 0.06;
+  const meltT = cl(drop + S.debt, 0, 1.05);
+  S.melt += (meltT - S.melt) * 0.06;
 
-  // mood: 0 is gone in the candy, 1 is the gun. Burning joints pull toward 0,
-  // haze pushes toward 1; the mood moves at a capped rate so every stage in
-  // between plays out.
+  // mood: 0 is SHADES OFF, 1 is BLAST. Burning joints pull toward 0, the melt
+  // pushes toward 1. Nothing burning and a full pile lands on THE MUG. The
+  // mood moves at a capped rate so every stage in between plays out.
   S.high = burning / (burning + SIM.HIGH_REF);
-  const moodT = cl((1 - S.high) * 0.45 + cl(S.haze, 0, 1) * 0.55, 0, 1);
+  const moodT = cl((1 - S.high) * 0.25 + cl(S.melt, 0, 1) * 0.75, 0, 1);
+
+  // The mug splits the ladder. Until it spills the mood cannot pass THE MUG;
+  // once spilled it cannot come back above SPILLED until a real high holds.
+  const edge = (MUG + 1) / 10;
+  if (!S.spilled) {
+    S.mugAge++;
+    S.boil = moodT >= edge ? S.boil + 1 : 0;
+    if (S.boil >= SIM.SPILL_BOIL) spill(S, "boil", "");
+  } else {
+    S.dry = moodT < SIM.REFILL_MOOD ? S.dry + 1 : 0;
+    if (S.dry >= SIM.REFILL_STEPS) {
+      S.spilled = 0;
+      S.dry = 0;
+      S.mugAge = 0;
+      emit(S, { t: "refill" });
+    }
+  }
   const d = cl(moodT - S.mood, -SIM.MOOD_RATE, SIM.MOOD_RATE);
   S.mood = cl(S.mood + d, 0, 1);
+  if (!S.spilled && S.mood >= edge) S.mood = edge - 0.0001;
+  if (S.spilled && S.mood < edge) S.mood = edge;
 
   // the named stage has hysteresis so it does not flicker on a boundary
   const raw = Math.min(9, Math.floor(S.mood * 10));
-  if (raw !== S.stage) {
+  if (S.hold > 0) S.hold--;
+  else if (raw !== S.stage) {
     const edge = raw > S.stage ? raw / 10 : (raw + 1) / 10;
     if (Math.abs(S.mood - edge) >= SIM.STAGE_HYST || Math.abs(raw - S.stage) > 1) {
       emit(S, { t: "stage", from: S.stage, to: raw });
@@ -349,7 +402,7 @@ export function simHash(S) {
   i32(S.seed); i32(S.step);
   f(S.px); f(S.pxAth); i32(S.bar); f(S.barHi); f(S.barClose); i32(S.athRun);
   f(S.flow); f(S.vol); f(S.buyAcc); f(S.sellAcc);
-  f(S.debt); f(S.haze); f(S.mood); f(S.high); i32(S.stage);
+  f(S.debt); f(S.melt); f(S.mood); f(S.high); i32(S.stage); i32(S.spilled); i32(S.boil); i32(S.dry); i32(S.mugAge); i32(S.hold);
   i32(S.nextId); i32(S.buys); i32(S.sells); i32(S.repelled); i32(S.arrived); i32(S.doused); i32(S.evCount);
   i32(S.joints.length);
   for (const j of S.joints) { i32(j.id); f(j.len); }
@@ -360,7 +413,7 @@ export function simHash(S) {
 
 const FIELDS = [
   "seed", "step", "px", "pxAth", "bar", "barHi", "barClose", "athRun",
-  "flow", "vol", "buyAcc", "sellAcc", "debt", "haze", "mood", "high", "stage",
+  "flow", "vol", "buyAcc", "sellAcc", "debt", "melt", "mood", "high", "stage", "spilled", "boil", "dry", "mugAge", "hold",
   "nextId", "buys", "sells", "repelled", "arrived", "doused", "evCount",
 ];
 

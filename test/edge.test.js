@@ -9,7 +9,7 @@ import { keccakText, keccak256 } from "../src/keccak.js";
 import { poolIdFor, decodeTrades, ADDR, TOPIC, isAddress } from "../src/chain.js";
 import { fixture, walk, ev } from "./_util.js";
 
-const finite = (S) => [S.px, S.pxAth, S.flow, S.haze, S.mood, S.debt, S.high].every(Number.isFinite);
+const finite = (S) => [S.px, S.pxAth, S.flow, S.melt, S.mood, S.debt, S.high].every(Number.isFinite);
 
 test("garbage events are ignored or clamped, never NaN", () => {
   const S = genesis(1);
@@ -24,9 +24,10 @@ test("garbage events are ignored or clamped, never NaN", () => {
   }
 });
 
-test("empty log: he idles in the cold and nothing moves", () => {
+test("empty log: he sits at THE MUG, mug full and nothing moves", () => {
   const S = walk([], 1, 5000);
-  assert.equal(S.stage, 4);
+  assert.equal(S.stage, 2);
+  assert.equal(S.spilled, 0);
   assert.equal(S.joints.length + S.kills.length, 0);
 });
 
@@ -58,7 +59,7 @@ test("a tampered snapshot is refused", () => {
   const S = walk([ev(3, 1, 0.1), ev(9, -1, 0.1)], 1, 400);
   const snap = snapshot(S);
   assert.equal(simHash(restore(JSON.parse(JSON.stringify(snap)))), snap.hash);
-  assert.throws(() => restore({ ...snap, haze: snap.haze + 1e-9 }));
+  assert.throws(() => restore({ ...snap, melt: snap.melt + 1e-9 }));
   assert.throws(() => restore({ ...snap, mood: NaN }));
 });
 
@@ -118,9 +119,12 @@ test("curve trades carry the trader from the event, not the relayer", () => {
   assert.ok(TOPIC.buy.startsWith("0xec36bf57"));
 });
 
-test("stage names are ten and the gun is last", async () => {
-  const { STAGES } = await import("../src/engine.js");
+test("stage names are ten, the mug splits them and the blast is last", async () => {
+  const { STAGES, STAGE_NOTES, MUG } = await import("../src/engine.js");
   assert.equal(STAGES.length, 10);
-  assert.equal(STAGES[9], "ARMED");
+  assert.equal(STAGE_NOTES.length, 10);
+  assert.equal(STAGES[MUG], "THE MUG");
+  assert.equal(STAGES[MUG + 1], "SPILLED");
+  assert.equal(STAGES[9], "BLAST");
   assert.ok(SIM.STEP_MS === 50);
 });

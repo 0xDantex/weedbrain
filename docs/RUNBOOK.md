@@ -9,7 +9,7 @@ node ingest/ingest.js --token 0xTOKEN
 It resolves the token, reads its history from the genesis block (the launch block, or `--lookback MIN` / `--genesis BLOCK` for a foreign token), writes `data/` and then polls every 2 s. It logs one line per poll with new trades and a state line every 30 s:
 
 ```
-15:44:12 +1  FURIOUS      mood 0.696  joints 0 (0.00)  buzzkills 1  haze 44.8%  repelled 66/138  hash ae1a2ba0 @27798
+15:43:04 +1  SUIT ON     mood 0.605  joints 8 (17.53)  buzzkills 9  pile 2%  mug spilled  repelled 28/60  hash e7b273bb @12268
 ```
 
 To keep it running on a Mac, a launchd agent with `KeepAlive` pointing at `node ingest/ingest.js --token 0x...` in the repository folder is enough. On Linux, a systemd service with `Restart=always`.

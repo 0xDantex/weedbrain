@@ -1,5 +1,5 @@
 // Watch any Pons v2 token in the terminal: trades as they land and what
-// each one did to the reaper.
+// each one did to him.
 //
 //   node tools/watch.js 0xABC... [--lookback 60] [--genesis N] [--poll 1500] [--for SECONDS]
 import { genesis, runTo, STAGES } from "../src/engine.js";
@@ -57,6 +57,10 @@ function drain() {
       console.log(`          buzzkill ${variantName(r.variant)} walks in from the ${r.side < 0 ? "left" : "right"} (size ${r.size.toFixed(2)})`);
     } else if (r.t === "repel") {
       console.log(`          lighter flash sends ${variantName(r.variant)} running`);
+    } else if (r.t === "spill") {
+      console.log(`          THE MUG GOES OVER (${r.cause === "sell" ? "a big sell" : "he boiled over"})`);
+    } else if (r.t === "refill") {
+      console.log("          a fresh mug");
     } else if (r.t === "stage") {
       console.log(`          stage ${STAGES[r.from]} -> ${STAGES[r.to]}`);
     } else if (r.t === "arrive") {

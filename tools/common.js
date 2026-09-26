@@ -39,11 +39,12 @@ export function fmtAmount(n) {
 export function stateLine(S) {
   const st = STAGES[stageOf(S)];
   return [
-    st.padEnd(11),
+    st.padEnd(10),
     `mood ${S.mood.toFixed(3)}`,
     `joints ${S.joints.length} (${burningLen(S).toFixed(2)})`,
     `buzzkills ${S.kills.length}`,
-    `haze ${(Math.min(1, S.haze) * 100).toFixed(1)}%`,
+    `pile ${Math.round(Math.max(0, 1 - Math.min(1, S.melt) / 0.8) * 100)}%`,
+    `mug ${S.spilled ? "spilled" : "full"}`,
     `repelled ${S.repelled}/${S.repelled + S.arrived}`,
     `hash ${simHash(S)} @${S.step}`,
   ].join("  ");

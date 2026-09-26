@@ -26,16 +26,19 @@ Why: the whole point is that every viewer and `replay.js` agree.
 Why: the scene has to be readable on real flow, not only on my synthetic streams.
 
 - on SNIFFR and FOMOFIED he visits at least six stages, no stage takes 60% or more and the caps hold
-- the size mapping is monotonic, zero under dust and 3 at most, and 10x the trade is less than 3x the size
+- small sells alone never take him past THE MUG until the mood has wanted to for 30 s and then the mug goes
+- one big sell tips the mug at once: SPILLED is on screen the next step and 2 s later he is two stages below where he was
+- after a spill, buys held long enough bring a fresh mug and he comes back up to EYES HEAVY or better
+- the size mapping is monotonic, zero under dust and 3 at most and 10x the trade is less than 3x the size
 - 8 trades every step never put more than the caps on screen
 - one buy on a quiet token is exactly one joint of its own size
-- a launch that pumps past 1,000x and retraces 47% on two-sided flow does not reach ARMED in three minutes
-- only sells end at ARMED and only buys at CANDY
+- a launch that pumps past 1,000x and retraces 47% on two-sided flow does not reach BLAST in three minutes
+- only sells end at BLAST and only buys at SHADES OFF
 - steady buys against steady sells stop some buzzkills
 
 ## feed.test.js
 
-Why: a lost trade can never be recovered in a shared log, and a late one would split viewers.
+Why: a lost trade can never be recovered in a shared log and a late one would split viewers.
 
 A fake node serves generated curve logs and v4 swaps with random latency (0 to 40 ms), advances its head by 1 to 40 blocks per call, hides the logs of its newest blocks and refuses any `eth_getLogs` over a limit.
 
@@ -52,7 +55,7 @@ A fake node serves generated curve logs and v4 swaps with random latency (0 to 4
 Why: bad input must never produce NaN or a split.
 
 - garbage events (side 0 or 2, NaN, negative, Infinity, 1e12 and 1e-12 amounts) leave the state finite
-- an empty log idles in COLD with nothing on screen
+- an empty log idles at THE MUG with the mug full and nothing on screen
 - prices from 1e-12 to 1e12 stay finite
 - 300,000 steps run and stay finite
 - an event for a step already played is skipped
@@ -66,7 +69,7 @@ Why: bad input must never produce NaN or a split.
 
 ## Outside `npm test`
 
-- `node tools/profile.js`: render time per phase with 10 buzzkills, 8 joints, full room smoke, cold light and a flash every 20 frames. Fails above 4 ms at p95. Measured: p95 0.76 ms, median 0.62 ms (Node 22, Apple silicon laptop).
-- In Chrome at 1440 x 900 the page drew a frame in 1.9 ms median and 2.6 ms max over 30 frames with the haze at 93%.
-- At a device pixel ratio of 2 the canvas buffer stays 448 x 336, its CSS box is set explicitly (908 x 681 in a 1280 wide window) and the hash matched the 1x run.
+- `node tools/profile.js`: render time per phase with a full bud pile rebuilt every frame, 10 buzzkills, 8 joints smoking and a flash every 20 frames. Fails above 4 ms at p95. Measured: p95 1.25 ms (Node 22, Apple silicon laptop).
+- In Chrome at 1440 x 900 on GME the page drew a frame in 1.5 ms median and 2.5 ms max over 30 frames.
+- At a device pixel ratio of 2 both canvas buffers stay 1280 x 720, their CSS box is set explicitly (908 x 511 in a 1280 wide window) and the hash matched a 390 px phone viewport on the same step.
 - `node tools/rpc-check.js` measures the chain and the RPC, see [FEED.md](FEED.md).

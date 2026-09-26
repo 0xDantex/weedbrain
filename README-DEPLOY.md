@@ -33,7 +33,7 @@ Live now: https://weedbrain.vercel.app (watching a borrowed test token until lau
 
 A machine that is on all the time runs `node ingest/ingest.js --token 0x...` (see [docs/RUNBOOK.md](docs/RUNBOOK.md)) and a web server serves `src/` and `data/` from the same origin, `data/` with `Cache-Control: no-cache` and `Range` support. Set `mode` to `collector`. Badge `SYNC`.
 
-**Start the collector before the first trade of the token.** It can read the history back to genesis on its own, but the moment the site switches to collector mode every viewer reads only what the collector has written, and the first trades set the high everything after them is measured against. Starting first is the simple way to be sure nothing depends on a catch-up.
+**Start the collector before the first trade of the token.** It can read the history back to genesis on its own, but the moment the site switches to collector mode every viewer reads only what the collector has written and the first trades set the high everything after them is measured against. Starting first is the simple way to be sure nothing depends on a catch-up.
 
 ## Launch order
 

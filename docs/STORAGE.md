@@ -57,4 +57,4 @@ Every 6,000 steps (5 minutes) the collector writes the full sim state to `state.
 3. The shards whose `lastStep` is at or after the snapshot's step, in full.
 4. It restores the snapshot, skips the events before its step and catches up to the safe step at 10 ms of work per frame.
 
-Then every 2 s it re-reads `meta.json` and fetches only the tail of the last shard with `Range: bytes=<offset>-`, and only when `meta.json` says the shard has grown past that offset. A shard it has not seen yet is fetched whole. The offset only moves past complete lines, so a half-written line is read again next time.
+Then every 2 s it re-reads `meta.json` and fetches only the tail of the last shard with `Range: bytes=<offset>-` and only when `meta.json` says the shard has grown past that offset. A shard it has not seen yet is fetched whole. The offset only moves past complete lines, so a half-written line is read again next time.

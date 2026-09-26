@@ -40,13 +40,13 @@ A node could report a new head a moment before the logs of that block are querya
 
 ## Measured on this chain
 
-`tools/rpc-check.js`, 2026-09-25:
+`tools/rpc-check.js`, 2026-09-26:
 
 | what | measured |
 |---|---|
-| block time | 0.1008 s over the last 1,000,000 blocks, 857,398 blocks a day |
-| `eth_getLogs` latency, 600 blocks of chain-wide curve events | 262 to 529 ms over 8 calls |
-| chain-wide curve trades | 3,628 in 6,000 blocks, about 518,000 a day at that rate |
+| block time | 0.1009 s over the last 1,000,000 blocks, 856,514 blocks a day |
+| `eth_getLogs` latency, 600 blocks of chain-wide curve events | 173 to 1,056 ms over 8 calls |
+| chain-wide curve trades | 3,633 in 6,000 blocks, about 518,600 a day at that rate |
 | v4 swaps chain-wide over 6,000 blocks | refused: "logs matched by query exceeds limit of 10000" |
 | graduations | 76 `PoolGraduated` events in 800,000 blocks (about 22 hours) |
 

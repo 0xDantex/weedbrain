@@ -1,18 +1,20 @@
-# WEED BRAIN
+# WEEDBRAIN
 
-A reaper in a hood smokes on the money of one Pons v2 token on Robinhood Chain.
-Buys keep him high, sells send people to put him out and the haze in his room is the drawdown from the high.
-Everything he does is computed from the token's trades and anyone can recompute it.
+A giant joint with a burning head lies in a pile of buds and smokes a smaller joint. He smokes himself.
+Buys throw him joints, sells send buzzkills to put them out, the pile melts with the drawdown and one big sell knocks his mug over.
+Everything he does is computed from the trades of one Pons v2 token on Robinhood Chain and anyone can recompute it.
 
-![The live scene in the SMOKING stage](docs/img/smoking.png)
+![The live scene at SHADES OFF: a full pile, joints burning, buzzkills wading in](docs/img/shades.png)
 
-## Why a reaper
+## Why a joint
 
-It is Halloween season and a memecoin chart already looks like a mood disorder. I wanted something that feels a chart the way a holder does: calm and giggling in the candy while the buys roll in, then a slow sobering up, then the jaw, the yelling and at the very bottom the gun. The reaper does not die. Death is his job, so he just sits there armed and waits for the next buy to start bringing him back.
+A memecoin chart already reads like a mood. I wanted a character who feels it the way a holder does and the joint is the one who has the most to lose: every buy is more of what he is made of, every sell is someone coming to put him out. So he smokes himself and that has to be explained only once.
 
-He smokes because a joint is the right unit for a buy: it is small, it burns down on its own and several of them can go at once. A sell needs someone to walk in and ruin it, so sells are buzzkills: a cop, a mom, a fed or a priest.
+The burning tip on his head is the tell. Calm, it glows. Angry, it flares. It is in the art, not drawn by code and it gets worse stage by stage.
 
-![The scene at the bottom, ARMED](docs/img/armed.png)
+The story has a hinge. At first he is flat out in the pile with his shades on, then heavy-eyed, then reaching for his mug. A big sell knocks the mug over and pours it all over him and from there he is angry about something real: soaked, fists, the suit, the gun at the camera, firing and at the very bottom the whole frame blows apart. He does not die. The next buys bring him back and a fresh mug with them.
+
+![A big sell knocks the mug over: SPILLED](docs/img/spilled.png)
 
 ## How it maps to the chain
 
@@ -20,24 +22,48 @@ Nothing here is a metaphor. Each rule maps to one thing on the chain.
 
 | on the scene | on the chain |
 |---|---|
-| a joint drops into the ashtray | a buy: `CurveBuy` on the token's bonding curve, or a Uniswap v4 swap into the token after graduation |
+| a joint drops into the pile | a buy: `CurveBuy` on the token's bonding curve, or a Uniswap v4 swap into the token after graduation |
 | its length | the size of the buy, on a log scale with a ceiling |
 | a lighter flash that pushes back the nearest buzzkill | the same buy |
-| a buzzkill walks in | a sell: `CurveSell`, or a v4 swap out of the token |
-| which buzzkill | the transaction hash picks it, not me |
-| a buzzkill reaches him and douses the longest joint | nothing new: it is the sell arriving, a big one douses two |
-| the haze, colder light, less smoke | `1 - price / high`, plus a debt for every buzzkill that got through, which heals slowly |
-| the stage (ten of them) | how much is burning against how thick the haze is |
+| a buzzkill wades in | a sell: `CurveSell`, or a v4 swap out of the token |
+| which buzzkill (cop, mom, fed, priest) | the transaction hash picks it, not me |
+| a buzzkill reaches him and douses the longest joint | the sell arriving, a big one douses two |
+| the bud pile, waist-high at the high, gone at 80% down | `1 - price / high`, plus a debt for every buzzkill that got through, which heals slowly |
+| the mug goes over | a sell of at least 0.1 ETH and five times the token's recent flow, or a mood that stayed sour for 30 s |
+| the stage (ten of them) | how much is burning against how much of the pile is gone, split by the mug |
 
 The trader is read from the event fields (the recipient of a buy, the seller of a sell), not from the transaction sender. On this chain a relayer submits most transactions, so `tx.from` is infrastructure.
+
+## The ten stages
+
+![The ten clips](docs/img/clips.png)
+
+| # | stage | frames | what he does |
+|---|---|---|---|
+| 1 | SHADES OFF | 1-5 | flat out in the pile, takes the shades off |
+| 2 | EYES HEAVY | 6-10 | smoking, going nowhere |
+| 3 | THE MUG | 11-15 | reaches for his mug and drinks |
+| 4 | SPILLED | 16-20 | the mug tips and goes all over him |
+| 5 | SOAKED | 21-25 | no drink, no patience |
+| 6 | FISTS | 26-30 | teeth grinding, first tremors |
+| 7 | SUIT ON | 36-40 | cold and done talking |
+| 8 | AIMING | 41-45 | the gun at the camera |
+| 9 | FIRING | 46-48 | muzzle flash, shells |
+| 10 | BLAST | 48-50 | the whole frame goes |
+
+Frames 31-35 do not exist in the art set. Stage 7 starts at frame 36.
+
+The mug splits the ladder. Without a spill he never goes past THE MUG, however bad the chart looks and with the mug gone he never comes back above SPILLED until the buys hold him there for 10 s. So the turn from calm to angry is always an event you can point at in the feed, never a slow slide.
+
+![The bottom: BLAST, the pile gone](docs/img/blast.png)
 
 ## The key property
 
 The state is a pure function of three things: the genesis seed, the ordered trade log and the step number. There is no `Math.random` and no clock inside the simulation and it does not care about frame rate. The live page prints a hash of the state in the corner. Two screens on the same step print the same line.
 
-![Desktop and phone on the same step show the same hash](docs/img/hash.png)
+![Desktop at a pixel ratio of 2 and a phone on the same step show the same hash](docs/img/hash.png)
 
-Above: a desktop window and a 390 px phone viewport at step 17618 both show `d4d28976 @17618`. I also checked it at a device pixel ratio of 2 and got the same hash.
+Above: a 1280 px window at a device pixel ratio of 2 and a 390 px phone viewport on the same demo step both show `c71f8300 @19004`. On the phone the scene is cropped to its middle square; the state is the same.
 
 ## Quick start
 
@@ -56,7 +82,7 @@ Then open http://localhost:8080/weedbrain.html for the scene and http://localhos
 | `collector` | `ingest/ingest.js` writes the log to shared files and every viewer reads them | yes, one log | a machine that runs the collector, plus hosting for `data/`. Badge `SYNC` |
 | `demo` | a seeded generator makes up the trades | yes within each hour | nothing. Badge `DEMO` and a red band across the scene |
 
-The mode and the token come from `src/weedbrain.config.json`. An empty `token` means demo.
+The mode and the token come from `src/weedbrain.config.json`. An empty `token` means demo. In demo mode `?at=<time>&hold` freezes the scene at one moment, which is how the screenshots above were taken.
 
 ## Run it on any token
 
@@ -66,12 +92,14 @@ The token address is never hard-coded. It comes from the config or from the comm
 node tools/watch.js 0xTOKEN              watch a token in the terminal
 node tools/replay.js --token 0xTOKEN     replay its history and print the state
 npm run serve -- --token 0xTOKEN         serve the site on that token
-node tools/find-active.js                list the busiest tokens right now
+node tools/find-active.js                list the busiest tokens right now and their stage
 ```
 
 For a token that has been trading for a while, `--lookback 60` starts the watch an hour back (rounded down to an hour grid of 36,000 blocks, so viewers in the same hour share a genesis). For my own token the genesis is its launch block.
 
 ![watch.js on a live token](docs/img/watch.png)
+
+![The live page on the same token](docs/img/live.png)
 
 ## Log format
 
@@ -87,41 +115,46 @@ step,side,eth,tok,px,blk,li,tx
 
 ## State snapshots
 
-In collector mode a client does not replay from genesis. It reads `data/state.json`, the latest snapshot and only replays the log after it. A snapshot holds every field and every entity in flight (burning joints, walking buzzkills) at full precision, plus its own hash and a client refuses a snapshot whose contents do not match that hash. The collector writes one every 6,000 steps (5 minutes). On the SNIFFR log a restore from a snapshot ends on the same hash as a full replay (`test/determinism.test.js`, snapshots taken at four different steps).
+In collector mode a client does not replay from genesis. It reads `data/state.json`, the latest snapshot and only replays the log after it. A snapshot holds every field and every entity in flight (burning joints, walking buzzkills, the mug and its timers) at full precision, plus its own hash and a client refuses a snapshot whose contents do not match that hash. The collector writes one every 6,000 steps (5 minutes). A restore from a snapshot ends on the same hash as a full replay (`test/determinism.test.js`, snapshots taken at four different steps of a real log).
 
 ## Verify
 
 ```
-$ node tools/replay.js --token 0x2f62eb241876cd49eb9135824a893ae62912434a
+$ node tools/replay.js --token 0xa6f1951bc0b13893756f7ae51a4956f97d485081 --lookback 60
 ```
 
 ![replay.js prints the state hash](docs/img/replay.png)
 
-The hash `replay.js` prints for a step must be the one the page shows for that step. I checked it five ways:
+The hash `replay.js` prints for a step must be the one the page shows for that step. I checked it four ways on the current engine:
 
-- collector against replay: the collector wrote `72cdd580 @28160` into `meta.json` and `replay.js --log data/events --to 28160` printed `72cdd580`
-- page in SYNC mode against replay: the page showed `043972fd @28359` and `replay.js` at step 28359 printed `043972fd`
-- across an hourly shard rollover: the collector's `d84d1c57 @52144`, read from two shards, matched `replay.js`
-- two viewports on the demo: `d4d28976 @17618` on both
-- the deployed site against my machine: https://weedbrain.vercel.app in a browser showed `856dc7e0 @69652` on SNIFFR, and `replay.js --token ... --lookback 60 --to 69652` printed `856dc7e0`
+- the live page against replay, direct mode on GME: the page showed `2e3f1698 @10632`, `replay.js --token ... --lookback 60 --to 10632` printed `2e3f1698`
+- the collector against replay: the collector wrote `e7b273bb @12268` into `meta.json`, `replay.js --log data/events --to 12268` printed `e7b273bb`
+- the page in SYNC mode against replay: the page showed `7a42cddc @12384`, `replay.js` at step 12384 printed `7a42cddc`
+- two viewports on the demo: `c71f8300 @19004` on both, one of them at a device pixel ratio of 2
 
 ## Tests
 
 ```
-npm test                 all 33 tests (node --test)
+npm test                 all 36 tests (node --test)
 node tools/profile.js    render time per phase in the worst scene
-node tools/economy.js    stage time and spawn counts on the real trade fixtures
+node tools/economy.js    stage time, spawns and spills on the real trade fixtures
 node tools/rpc-check.js  block time, RPC latency and log limits, measured now
 ```
 
 | file | checks |
 |---|---|
 | `test/determinism.test.js` | the same hash at 1, 3, 17, 60 and 1,000 steps per frame, on irregular frames, under a 0.01 ms catch-up budget, after a restore from any snapshot and for two demo viewers who open the page 25 minutes apart |
-| `test/economy.test.js` | on two real tokens (one on the curve, one graduated to v4) he visits at least six stages and no stage takes more than 60% of the time. Also the log size mapping, aggregation on a token with 9,600 trades a minute, a fresh launch that pumps past 1,000x and retraces 47% and the extremes (only buys, only sells) |
+| `test/economy.test.js` | on two real tokens (one on the curve, one graduated to v4) he visits at least six stages and no stage takes more than 60% of the time. The mug: small sells alone only tip it after 30 s of boiling, one big sell tips it at once with SPILLED shown first, a held high brings a fresh one. Also the log size mapping, aggregation on a token with 9,600 trades a minute, a fresh launch that pumps past 1,000x and retraces 47% and the extremes (only buys, only sells) |
 | `test/feed.test.js` | a fake node with random latency, a head that runs ahead of its logs, a 10,000-log style refusal and a graduation halfway through: no trade lost, none late. A control run with a node lagging past the safety margin does lose trades, so the test can fail |
 | `test/edge.test.js` | garbage events, prices from 1e-12 to 1e12, 300,000 steps, late events, tampered snapshots, the RNG sign trap, my keccak and v4 pool id against viem and real captured logs decoding to the side their token `Transfer` shows |
 
 The real trade fixtures in `test/fixtures` were captured with `tools/capture-fixture.js` from SNIFFR (on the curve) and FOMOFIED (graduated, trading on its v4 pool).
+
+## The art
+
+The 45 source frames are 1400 x 1400 (`art/frames`). They were cut out of a sheet and come in two shapes: three of every five are a 1280 x ~1370 picture with white margins, a border line and a sliver of the next panel under it and the other two are the same picture squashed into 1400 x 1017. `tools/make-frames.py` finds the picture inside each frame and resizes every one to the same 672 x 720 box, which undoes the squash. On frames 3 and 4 the mean pixel difference after that is 48.8, against 44.6 between two neighbours of the same shape and 77.7 if the squashed frame is only scaled. Nothing is redrawn and nothing goes above its source size.
+
+`tools/make-clips.py` builds the ten clips from those frames in three variants each, with the stage name and level bar, clean for the site and 1280 x 720 for posts, as webp and gif.
 
 ## Layout
 
@@ -135,11 +168,12 @@ src/
   feed.js                 trade log, direct / collector / demo sources
   chain.js keccak.js      Pons v2 reader over plain JSON-RPC
   weedbrain.config.json   token, mode, links
-  frames/                 50 cleaned frames and the atlas the page loads
+  frames/                 45 scene frames and the bud texture of the pile
+  clips/                  the ten clean clips for the landing page
 ingest/                   the collector
-tools/                    serve, watch, replay, profile, economy, fixtures, images
+tools/                    serve, watch, replay, profile, economy, fixtures, frames, clips, images, deploy
 test/                     node --test suites and real trade fixtures
-art/raw/                  the 50 source frames
+art/                      the 45 source frames and the two fonts the clips use
 docs/                     ARCHITECTURE, ECONOMY, FEED, STORAGE, RUNBOOK, TESTPLAN
 ```
 
@@ -148,6 +182,6 @@ docs/                     ARCHITECTURE, ECONOMY, FEED, STORAGE, RUNBOOK, TESTPLA
 - It does not trade, sign or hold anything. There are no keys in this repository and CI fails the build if `PRIVATE_KEY`, `privateKeyToAccount`, `signTransaction` or `sendTransaction` show up in the source.
 - It is not trustless. The state comes from public trades and you can recompute it, but in collector mode the log is written by a process I run and the site is hosted by me.
 - In direct mode each browser reads the RPC on its own. Viewers should agree, but nothing forces them to.
-- The price and the high are used inside the simulation to compute the haze. The page never shows a price.
-- For tokens paired with something other than ETH the size mapping still reads the quote amount, which is then not ETH. My token is ETH-paired.
-- The frames are 252 x 316. On a big monitor they are scaled up with visible pixels, not redrawn.
+- The price and the high are used inside the simulation to size the pile. The page never shows a price.
+- For tokens paired with something other than ETH the size mapping and the spill size still read the quote amount, which is then not ETH. My token is ETH-paired.
+- The buzzkills, the joints in the pile and the lighter are pixel sprites drawn by code. The character is the art set and nothing else.

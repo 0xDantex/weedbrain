@@ -1,5 +1,5 @@
-// List the busiest Pons v2 tokens of the last few minutes and the stage the
-// reaper would be in on each, for picking a foreign token to test with.
+// List the busiest Pons v2 tokens of the last few minutes and the stage he
+// would be in on each, for picking a foreign token to test with.
 //   node tools/find-active.js [--minutes 10] [--top 8]
 import { makeRpc, headBlock, TOPIC, CHAIN, resolveToken } from "../src/chain.js";
 import { genesis, runTo, STAGES } from "../src/engine.js";

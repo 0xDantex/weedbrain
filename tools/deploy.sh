@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy src/ to Vercel from a copy without git metadata. The Vercel team
-# blocks deployments whose git commit author is not a team member, and the
+# blocks deployments whose git commit author is not a team member and the
 # site is plain static files, so it ships as a folder.
 set -e
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

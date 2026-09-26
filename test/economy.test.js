@@ -67,10 +67,10 @@ test("fresh launch: a 1,000x-plus first minute and a 47% retrace on two-sided fl
   let worst = 0;
   const S = walk(events, 7, 3600, (S) => (worst = Math.max(worst, S.stage)));
   assert.ok(px / 1e-9 > 1000, "the fixture pumps past 1000x");
-  assert.ok(worst < 9, `reached ${STAGES[worst]} inside three minutes of launch (haze ${S.haze.toFixed(2)})`);
+  assert.ok(worst < 9, `reached ${STAGES[worst]} inside three minutes of launch (melt ${S.melt.toFixed(2)})`);
 });
 
-test("only sells end at the gun; only buys end in the candy", () => {
+test("only sells end at BLAST; only buys end at SHADES OFF", () => {
   const sells = [], buys = [];
   let p1 = 1e-8, p2 = 1e-8;
   for (let s = 0; s < 40000; s += 40) {
@@ -80,6 +80,49 @@ test("only sells end at the gun; only buys end in the candy", () => {
   sells.unshift(ev(0, 1, 0.01, 1e-8));
   assert.equal(walk(sells, 3, 40000).stage, 9);
   assert.equal(walk(buys, 3, 40000).stage, 0);
+});
+
+test("small sells alone never tip the mug before it has boiled for 30 s", () => {
+  // every sell under the spill size, a steady slide: the mood wants past THE
+  // MUG, but the mug only goes over after SPILL_BOIL steps of that
+  const events = [];
+  let px = 1e-8;
+  events.push(ev(0, 1, 0.01, px));
+  for (let s = 20; s < 30000; s += 40) { px *= 0.996; events.push(ev(s, -1, 0.01, px)); }
+  let firstAbove = -1, spillAt = -1, maxBefore = 0;
+  const S0 = walk(events, 4, 30000, (S) => {
+    if (!S.spilled) maxBefore = Math.max(maxBefore, S.stage);
+    if (spillAt < 0 && S.spilled) spillAt = S.step;
+    if (firstAbove < 0 && S.boil === 1) firstAbove = S.step;
+  });
+  assert.ok(maxBefore <= 2, "passed THE MUG without a spill");
+  assert.ok(spillAt > 0 && spillAt - firstAbove >= SIM.SPILL_BOIL - 1, `spilled ${spillAt - firstAbove} steps after the boil began`);
+  assert.ok(S0.stage >= 3);
+});
+
+test("one big sell knocks the mug over at once: SPILLED plays, then two stages down", () => {
+  const events = [ev(0, 1, 0.05, 1e-8)];
+  for (let s = 10; s < 1200; s += 60) events.push(ev(s, 1, 0.02, 1e-8));
+  events.push(ev(1300, -1, 0.2, 1e-8));
+  events.push(ev(1340, -1, 0.001, 1e-8));
+  let before = -1, after = -1, later = -1;
+  walk(events, 9, 1600, (S) => {
+    if (S.step === 1300) before = S.stage;
+    if (S.step === 1301) after = S.stage;
+    if (S.step === 1301 + SIM.SPILL_HOLD + 1) later = S.stage;
+  });
+  assert.ok(before <= 2, `was at ${STAGES[before]} before the sell`);
+  assert.equal(after, 3, "the spill shows first");
+  assert.equal(later, Math.max(3, before + 2));
+});
+
+test("after the spill a long enough high brings a fresh mug and he can come back up", () => {
+  const events = [ev(0, 1, 0.02, 1e-8), ev(200, -1, 0.3, 1e-8)];
+  for (let s = 400; s < 20000; s += 30) events.push(ev(s, 1, 0.05, 1e-8 * (1 + s / 1e6)));
+  let refilled = false;
+  const S = walk(events, 2, 20000, (S) => { if (!S.spilled && S.step > 400) refilled = true; });
+  assert.ok(refilled, "never refilled");
+  assert.ok(S.stage <= 1, `ended at ${STAGES[S.stage]}`);
 });
 
 test("lighter flashes stop buzzkills: steady buys against steady sells repel some", () => {

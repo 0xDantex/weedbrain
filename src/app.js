@@ -1,8 +1,8 @@
 // Page glue: boot sequence, the frame loop, HUD, trade feed and popups.
-import { genesis, runTo, simHash, STAGES, KILL_VARIANTS, restore } from "./engine.js";
+import { genesis, runTo, simHash, STAGES, STAGE_NOTES, restore } from "./engine.js";
 import { DirectFeed, DemoFeed, CsvFeed } from "./feed.js";
 import { txUrl, CHAIN } from "./chain.js";
-import { Renderer, decodeAtlas, SCENE } from "./render.js";
+import { Renderer, SCENE, FRAME_NUMBERS } from "./render.js";
 
 const $ = (id) => document.getElementById(id);
 const LAG_STEPS = 60; // the scene runs 3 s behind the chain head so the feed can land first
@@ -68,7 +68,16 @@ async function boot() {
   document.body.dataset.mode = mode;
 
   screen("load", "LOADING", "reading the frames", 0);
-  const atlasP = loadImage("frames/atlas.webp").then(decodeAtlas);
+  // every frame of every clip, plus the bud texture the pile is cut from
+  const framesP = Promise.all(FRAME_NUMBERS.map((n) => loadImage(`frames/${String(n).padStart(2, "0")}.webp`).then((img) => [n, img]))).then((l) => new Map(l));
+  const budsP = loadImage("frames/buds.webp").then((img) => {
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const x = c.getContext("2d");
+    x.drawImage(img, 0, 0);
+    return x.getImageData(0, 0, img.width, img.height);
+  });
 
   let feed;
   try {
@@ -100,7 +109,7 @@ async function boot() {
     }
     return;
   }
-  const frames = await atlasP;
+  const [frames, buds] = await Promise.all([framesP, budsP]);
 
   const meta = feed.meta;
   const symbol = mode === "demo" ? "DEMO" : meta.symbol;
@@ -126,15 +135,19 @@ async function boot() {
   while (idx < feed.events.length && feed.events[idx].step < S.step) idx++;
 
   const popups = $("popups");
-  const canvas = $("scene");
-  const renderer = new Renderer(canvas, frames, {
+  const renderer = new Renderer($("art"), $("scene"), frames, buds, {
     reducedMotion: reduced,
     onPopup: (p) => {
       const el = document.createElement("div");
       el.className = "pop " + (p.side > 0 ? "buy" : "sell");
       el.textContent = `${p.side > 0 ? "BUY" : "SELL"} ${fmtAmount(p.tok)} $${symbol}`;
-      el.style.left = `${(p.x / SCENE.RW) * 100}%`;
-      el.style.top = `${(p.y / SCENE.RH) * 100}%`;
+      // from scene pixels to the frame box, which on a phone crops the scene
+      const cr = $("scene").getBoundingClientRect();
+      const fr = $("frame").getBoundingClientRect();
+      const px = cr.left + (p.x / SCENE.RW) * cr.width - fr.left;
+      const py = cr.top + (p.y / SCENE.RH) * cr.height - fr.top;
+      el.style.left = `${Math.max(12, Math.min(88, (px / fr.width) * 100))}%`;
+      el.style.top = `${(py / fr.height) * 100}%`;
       popups.appendChild(el);
       setTimeout(() => el.remove(), 2400);
     },
@@ -181,7 +194,7 @@ async function boot() {
 
   function drain(live) {
     for (const r of S.out) {
-      renderer.handle(r, live, symbol);
+      renderer.handle(r, live);
       if (r.t === "trade") addRow(r);
     }
     S.out.length = 0;
@@ -189,16 +202,19 @@ async function boot() {
 
   function hud() {
     $("stage").textContent = STAGES[S.stage];
+    $("note").textContent = STAGE_NOTES[S.stage];
+    const lvl = Math.max(0, 1 - S.mood);
+    $("levelbar").style.width = `${Math.round(lvl * 100)}%`;
+    $("levelbar").classList.toggle("low", lvl <= 0.5);
     const n = S.joints.length;
-    $("joints").textContent = n === 0 ? "nothing burning" : `${n} joint${n === 1 ? "" : "s"} burning`;
-    $("haze").textContent = `${Math.round(Math.min(1, S.haze) * 100)}%`;
-    $("hazebar").style.width = `${Math.min(100, S.haze * 100)}%`;
+    $("joints").textContent = n === 0 ? "nothing" : `${n} joint${n === 1 ? "" : "s"}`;
+    $("pile").textContent = `${Math.round(Math.max(0, 1 - Math.min(1, S.melt) / 0.8) * 100)}%`;
+    $("mug").textContent = S.spilled ? "spilled" : "full";
     $("repelled").textContent = String(S.repelled);
     $("total").textContent = String(S.repelled + S.arrived);
     $("arrived").textContent = String(S.arrived);
     $("walking").textContent = String(S.kills.length);
     $("hash").textContent = `${simHash(S)} @${S.step}`;
-    document.body.dataset.stage = String(S.stage);
   }
 
   screen("sync", "REPLAYING", "catching up with the log", 0);

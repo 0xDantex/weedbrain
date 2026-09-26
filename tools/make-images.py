@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
-BG = (11, 9, 7)
+BG = (22, 18, 14)
 INK = (239, 230, 216)
 DIM = (148, 136, 120)
 ORANGE = (235, 108, 37)
@@ -56,7 +56,7 @@ def terminal(out, cmd, text):
 
 
 def strip(out):
-    picks = [(3, "CANDY"), (13, "SMOKING"), (22, "COLD"), (28, "TEETH"), (43, "RAGING"), (50, "ARMED")]
+    picks = []
     W, H, pad, cap = 252, 316, 16, 56
     im = Image.new("RGB", (len(picks) * (W + pad) + pad, H + cap + pad * 2), BG)
     d = ImageDraw.Draw(im)
@@ -72,17 +72,20 @@ def strip(out):
 
 def hero(canvas):
     sc = Image.open(canvas).convert("RGB")
-    sc.resize((sc.width * 2, sc.height * 2), Image.NEAREST).save(ROOT / "src/img/scene-smoking.png", optimize=True)
-    og = Image.new("RGB", (1200, 630), BG)
-    s = sc.resize((sc.width * 552 // sc.height, 552), Image.NEAREST)
-    og.paste(s, (1200 - s.width - 39, 39))
+    sc.save(ROOT / "src/img/scene.png", optimize=True)
+    og = Image.new("RGB", (1200, 630), (255, 255, 255))
+    # the middle of the scene, where he is, on the right; the name on white on the left
+    s = sc.crop((250, 0, 1030, 720)).resize((683, 630), Image.LANCZOS)
+    og.paste(s, (1200 - 683, 0))
+    fade = Image.linear_gradient("L").rotate(90).resize((120, 630))
+    og.paste(Image.new("RGB", (120, 630), (255, 255, 255)), (1200 - 683, 0), fade.transpose(Image.FLIP_LEFT_RIGHT))
     d = ImageDraw.Draw(og)
-    big, mid = font(52), font(22)
-    d.text((44, 170), "WEED BRAIN", font=big, fill=INK)
-    lines = ["A buy throws him a joint.", "A sell sends a buzzkill.", "The haze is the drawdown."]
-    for i, l in enumerate(lines):
-        d.text((46, 262 + i * 38), l, font=mid, fill=(ORANGE if i == 0 else INK))
-    d.text((46, 520), "live on Robinhood Chain", font=font(18), fill=DIM)
+    pix = lambda n: ImageFont.truetype(str(ROOT / "art/fonts/Tiny5-Regular.ttf"), n)
+    d.text((44, 200), "WEEDBRAIN", font=pix(72), fill=(22, 18, 14))
+    d.text((48, 290), "he smokes himself", font=pix(34), fill=(228, 87, 46))
+    d.text((48, 340), "on the trades of one", font=pix(26), fill=(125, 116, 102))
+    d.text((48, 372), "Pons v2 token", font=pix(26), fill=(125, 116, 102))
+    d.text((48, 560), "live on Robinhood Chain", font=font(18), fill=(125, 116, 102))
     og.save(ROOT / "src/og.png", optimize=True)
 
 

@@ -2,11 +2,13 @@
 
 ## SIM and RENDER never touch
 
-Everything that decides the reaper's fate lives in `src/engine.js`: the price and the high, the haze, the burning joints, the walking buzzkills, the mood and the stage. It does not draw and it does not know a canvas exists. It advances in fixed 50 ms steps and the only inputs are the genesis seed and the ordered event log.
+Everything that decides his fate lives in `src/engine.js`: the price and the high, the melt of the bud pile, the burning joints, the walking buzzkills, the mug, the mood and the stage. It does not draw and it does not know a canvas exists. It advances in fixed 50 ms steps and the only inputs are the genesis seed and the ordered event log.
 
-Everything cosmetic lives in `src/render.js`: the frame the reaper is on, his sway, the smoke particles, the ember flicker, the lighter burst, buzzkills easing toward the positions the sim gives them. Randomness and the wall clock are allowed there, because nothing the renderer does flows back.
+Everything cosmetic lives in `src/render.js`: which frame of the stage's clip is on screen, the bud pile's bumpy outline, the smoke particles, the ember flicker, the lighter burst, the splash when the mug goes, buzzkills easing toward the positions the sim gives them. Randomness and the wall clock are allowed there, because nothing the renderer does flows back.
 
-The sim talks to the renderer through `S.out`, a queue of plain records (`joint`, `flash`, `kill`, `repel`, `arrive`, `burnout`, `stage`, `trade`). The page drains it every frame. During a long catch-up nobody drains it for a while, so it is capped at 400 records and the oldest go first. An earlier version dropped the newest instead and the trade feed froze on old trades after a catch-up; I caught that on a screenshot and flipped it.
+The scene is two stacked canvases of 1280 x 720. The lower one holds the character: one frame of the current stage's clip, drawn with `drawImage` only when the frame changes (most clips play forward and back with a hold at each end, SPILLED plays once and FIRING and BLAST loop). The upper one is the renderer's own `Uint32Array` pushed with a single `putImageData` per frame: the pile, the joints in it, the buzzkills, flashes and smoke, over a transparent background. The pile layer is rebuilt only when its height moves by a pixel and copied into the buffer with one `set` otherwise.
+
+The sim talks to the renderer through `S.out`, a queue of plain records (`joint`, `flash`, `kill`, `repel`, `arrive`, `burnout`, `spill`, `refill`, `stage`, `trade`). The page drains it every frame. During a long catch-up nobody drains it for a while, so it is capped at 400 records and the oldest go first. An earlier version dropped the newest instead and the trade feed froze on old trades after a catch-up; I caught that on a screenshot and flipped it.
 
 The same `engine.js` file is imported by the page, the collector, the command-line tools and the tests. There is no copy of the sim anywhere.
 
@@ -37,7 +39,7 @@ The ECMAScript spec lets `Math.log`, `Math.exp` and `Math.pow` round differently
 
 ## Cold start
 
-In direct mode the page resolves the token, reads its whole history from the genesis block and replays it. For SNIFFR, 12 minutes after its launch, that was 436 trades read in 1,767 ms and replayed in 18 ms (`tools/replay.js`). In collector mode it reads `state.json` and the shards after it, see [STORAGE.md](STORAGE.md).
+In direct mode the page resolves the token, reads its whole history from the genesis block and replays it. For GME with an hour of lookback the page went from open to the live scene in 2.8 s, including resolving the token and reading and replaying its trades. In collector mode it reads `state.json` and the shards after it, see [STORAGE.md](STORAGE.md).
 
 ## Credits
 
