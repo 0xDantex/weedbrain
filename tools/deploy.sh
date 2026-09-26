@@ -9,5 +9,7 @@ cp -R "$ROOT/src/." "$OUT/"
 mkdir -p "$OUT/.vercel"
 cp "$ROOT/.vercel/project.json" "$OUT/.vercel/"
 node -e 'const v=require(process.argv[1]); v.outputDirectory="."; require("fs").writeFileSync(process.argv[2], JSON.stringify(v, null, 2))' "$ROOT/vercel.json" "$OUT/vercel.json"
-cd "$OUT" && npx vercel deploy --prod --yes
+# the team is named explicitly: from a folder with no git a bare deploy was refused as "Not authorized"
+SCOPE=$(node -e 'console.log(require(process.argv[1]).orgId)' "$ROOT/.vercel/project.json")
+cd "$OUT" && npx vercel deploy --prod --yes --scope "$SCOPE"
 rm -rf "$OUT"
