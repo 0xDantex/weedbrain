@@ -434,8 +434,9 @@ async function boot() {
         set("watching", `watching ${m.symbol}${m.name ? " / " + m.name : ""} · ${short(m.token)}`);
         document.querySelectorAll("[data-symbol]").forEach((e) => (e.textContent = cfg.name || "WEEDBRAIN"));
         if (lv.mode === "direct" || lv.mode === "collector") {
-          stats = new Stats(lv.feed.rpc || makeRpc(), m, () => {});
-          setTimeout(() => stats.start(), 4000);
+          // its own client, so the counters queue behind each other and not behind the live poll
+          stats = new Stats(makeRpc(), m, () => {}, lv.mode === "direct" ? lv.feed : null);
+          setTimeout(() => stats.start(), 1500);
         }
       }
       row = tape(lv);

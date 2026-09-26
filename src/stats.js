@@ -15,7 +15,8 @@ const SUPPLY_SEL = keccakText("totalSupply()").slice(0, 10);
 const addr = (t) => "0x" + t.slice(26).toLowerCase();
 
 export class Stats {
-  constructor(rpc, meta, onUpdate) {
+  constructor(rpc, meta, onUpdate, feed = null) {
+    this.feed = feed;
     this.rpc = rpc;
     this.meta = meta;
     this.onUpdate = onUpdate;
@@ -47,7 +48,16 @@ export class Stats {
       try {
         const head = await headBlock(this.rpc);
         const from = Math.max(this.meta.launchBlock || 0, head - DAY_BLOCKS);
-        const t = await readTrades(this.rpc, this.meta, from, head);
+        // the feed already holds every trade since its genesis; read the
+        // chain only when the feed started later than a day ago
+        const fromFeed = this.feed && this.feed.genesisBlk <= from;
+        const t = fromFeed ? this.feed.events.filter((e) => e.blk >= from && e.blk <= head) : await readTrades(this.rpc, this.meta, from, head);
+        if (fromFeed) {
+          this.tradeBlocks = t.map((x) => x.blk);
+          this.trades24 = this.tradeBlocks.length;
+          this.countedTo = head;
+          this.onUpdate(this);
+        }
         this.balances = new Map();
         await this.transfers(this.meta.launchBlock || head - DAY_BLOCKS, head);
         this.tradeBlocks = t.map((x) => x.blk);

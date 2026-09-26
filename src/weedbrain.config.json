@@ -1,14 +1,14 @@
 {
   "name": "WEEDBRAIN",
-  "ticker": "WBRAIN",
-  "ca": "",
+  "ticker": "HYDX",
+  "ca": "0xaa5751ff3fb61e613993b2eb4eab1fce017081fc",
   "mode": "direct",
-  "token": "0x86720fdf293fa64b19181f49af61d5ffcf7471f4",
+  "token": "0xaa5751ff3fb61e613993b2eb4eab1fce017081fc",
   "genesisBlock": 0,
-  "lookbackMin": 60,
+  "lookbackMin": 0,
   "pollMs": 1500,
-  "buyUrl": "https://ponsportal.fun/token/{token}",
-  "x": "",
+  "buyUrl": "https://www.ponsfamily.com/launchpad/0xAA5751Ff3Fb61e613993B2EB4EAb1fce017081fc",
+  "x": "https://x.com/0xdantex",
   "github": "",
   "dataUrl": "/data/"
 }

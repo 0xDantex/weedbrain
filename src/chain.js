@@ -26,6 +26,7 @@ export const TOPIC = {
   sell: keccakText("CurveSell(address,address,uint256,uint256,uint256,uint256)"),
   swap: keccakText("Swap(bytes32,address,int128,int128,uint160,uint128,int24,uint24)"),
   launched: keccakText("TokenLaunched(address,address,address,address,uint256,uint256)"),
+  transfer: keccakText("Transfer(address,address,uint256)"),
 };
 
 const sel = (sig) => keccakText(sig).slice(0, 10);
@@ -363,6 +364,7 @@ export async function getLogsChunked(rpc, filter, from, to, { chunk = MAX_CHUNK,
 export async function readTrades(rpc, meta, from, to, { curve = true, pool = true, onProgress } = {}) {
   if (to < from) return [];
   const parts = [];
+  let swapLogs = null;
   let done = 0;
   const legs = (curve ? 1 : 0) + (pool ? 1 : 0);
   const prog = (p) => onProgress && onProgress((done + p) / legs);
@@ -378,8 +380,39 @@ export async function readTrades(rpc, meta, from, to, { curve = true, pool = tru
       onProgress: prog,
     });
     parts.push(...logs);
+    if (logs.length) swapLogs = logs;
   }
-  return decodeTrades(meta, parts);
+  const trades = decodeTrades(meta, parts);
+  if (swapLogs) await attachSwapTraders(rpc, meta, trades, from, to);
+  return trades;
+}
+
+/**
+ * A v4 Swap names only the router, so the wallet behind a pool trade is read
+ * from the token's Transfer in the same transaction: tokens leaving the pool
+ * manager go to the buyer, tokens arriving come from the seller. Display
+ * only: the trader never enters the log or the hash.
+ */
+async function attachSwapTraders(rpc, meta, trades, from, to) {
+  // only the recent ones: the page shows the last 40 trades, and reading
+  // every Transfer since launch would double a cold start
+  const need = trades.filter((t) => !t.trader && t.blk > to - 20_000);
+  if (!need.length) return;
+  const lo = Math.min(...need.map((t) => t.blk)), hi = Math.max(...need.map((t) => t.blk));
+  let logs;
+  try {
+    ({ logs } = await getLogsChunked(rpc, { address: meta.token, topics: [TOPIC.transfer] }, Math.max(from, lo), Math.min(to, hi), { chunk: 20_000 }));
+  } catch {
+    return;
+  }
+  const pm = ADDR.poolManager;
+  const byTx = new Map();
+  for (const l of logs) {
+    const f = topicAddr(l.topics[1]), t = topicAddr(l.topics[2]);
+    const who = f === pm ? t : t === pm ? f : null;
+    if (who && !byTx.has(l.transactionHash.toLowerCase())) byTx.set(l.transactionHash.toLowerCase(), who);
+  }
+  for (const t of need) t.trader = byTx.get(t.tx) || "";
 }
 
 /** Refresh the graduated flag; the feed switches its polling leg when it flips. */
