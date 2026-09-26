@@ -33,25 +33,35 @@ export class Stats {
       const s = await this.rpc.call("eth_call", [{ to: this.meta.token, data: SUPPLY_SEL }, "latest"]);
       this.supply = Number(BigInt(s)) / 10 ** this.meta.decimals;
     } catch { this.supply = 1e9; }
-    this.onUpdate(this);
-    const head = await headBlock(this.rpc);
-    this.head = head;
-    // trades in the last day, counted from the curve and pool logs
-    const from = Math.max(this.meta.launchBlock || 0, head - DAY_BLOCKS);
-    try {
-      const t = await readTrades(this.rpc, this.meta, from, head);
-      this.tradeBlocks = t.map((x) => x.blk);
-      this.trades24 = this.tradeBlocks.length;
-      this.countedTo = head;
-      this.onUpdate(this);
-    } catch { /* the counter stays empty */ }
-    // holders, replayed from launch
-    try {
-      await this.transfers(this.meta.launchBlock || head - DAY_BLOCKS, head);
-      this.onUpdate(this);
-    } catch { /* the counter stays empty */ }
-    this.scanned = head;
+    await this.initial();
     setInterval(() => this.refresh(), 30000);
+  }
+
+  /**
+   * The full counts, retried until they succeed. Until then the counters
+   * stay empty: counting only the transfers after a failed first read would
+   * show a number that looks real and is not.
+   */
+  async initial() {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const head = await headBlock(this.rpc);
+        const from = Math.max(this.meta.launchBlock || 0, head - DAY_BLOCKS);
+        const t = await readTrades(this.rpc, this.meta, from, head);
+        this.balances = new Map();
+        await this.transfers(this.meta.launchBlock || head - DAY_BLOCKS, head);
+        this.tradeBlocks = t.map((x) => x.blk);
+        this.trades24 = this.tradeBlocks.length;
+        this.countedTo = head;
+        this.scanned = head;
+        this.head = head;
+        this.onUpdate(this);
+        return;
+      } catch {
+        this.holders = null;
+        await new Promise((r) => setTimeout(r, Math.min(60000, 5000 * 2 ** attempt)));
+      }
+    }
   }
 
   async transfers(from, to) {
@@ -68,6 +78,7 @@ export class Stats {
   }
 
   async refresh() {
+    if (this.scanned == null) return;
     try {
       const head = await headBlock(this.rpc);
       if (head > this.scanned) {
