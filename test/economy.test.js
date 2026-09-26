@@ -2,7 +2,7 @@
 // synthetic extremes.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SIM, STAGES, sizeOf } from "../src/engine.js";
+import { SIM, STAGES, sizeOf, genesis, applyEvent, simStep, snapshot, restore } from "../src/engine.js";
 import { fixture, walk, ev } from "./_util.js";
 
 function stageShare(events, seed, steps) {
@@ -82,29 +82,52 @@ test("only sells end at BLAST; only buys end at SHADES OFF", () => {
   assert.equal(walk(buys, 3, 40000).stage, 0);
 });
 
-test("small sells alone never tip the mug before it has boiled for 30 s", () => {
-  // every sell under the spill size, a steady slide: the mood wants past THE
-  // MUG, but the mug only goes over after SPILL_BOIL steps of that
-  const events = [];
-  let px = 1e-8;
-  events.push(ev(0, 1, 0.01, px));
-  for (let s = 20; s < 30000; s += 40) { px *= 0.996; events.push(ev(s, -1, 0.01, px)); }
-  let firstAbove = -1, spillAt = -1, maxBefore = 0;
-  const S0 = walk(events, 4, 30000, (S) => {
-    if (!S.spilled) maxBefore = Math.max(maxBefore, S.stage);
-    if (spillAt < 0 && S.spilled) spillAt = S.step;
-    if (firstAbove < 0 && S.boil === 1) firstAbove = S.step;
+test("every trade moves him: a buy toward SHADES OFF, a sell toward BLAST, bigger moves further", () => {
+  const S = genesis(1);
+  S.mood = 0.55; S.spilled = 1; S.stage = 5;
+  const at = (side, eth) => {
+    const T = restore(snapshot(S));
+    applyEvent(T, ev(0, side, eth));
+    return T.mood - S.mood;
+  };
+  const smallBuy = at(1, 0.001), bigBuy = at(1, 1), smallSell = at(-1, 0.001), bigSell = at(-1, 0.05);
+  assert.ok(smallBuy <= -0.1 + 1e-9 && bigBuy < smallBuy, `buys ${smallBuy} ${bigBuy}`);
+  assert.ok(smallSell >= 0.1 - 1e-9 && bigSell > smallSell, `sells ${smallSell} ${bigSell}`);
+  assert.ok(bigBuy >= -0.3 - 1e-9);
+});
+
+test("on a real graduated token over 9 in 10 trades move his mood", () => {
+  const fx = fixture("fomofied");
+  const S = genesis(fx.meta.seed);
+  let i = 0, moved = 0, n = 0;
+  for (let st = 0; st < fx.meta.safeStep; st++) {
+    while (i < fx.events.length && fx.events[i].step <= S.step) {
+      const e = fx.events[i++];
+      if (e.step !== S.step || e.eth < SIM.DUST) continue;
+      const m0 = S.mood, sp0 = S.spilled;
+      applyEvent(S, e);
+      n++;
+      if (S.mood !== m0 || S.spilled !== sp0) moved++;
+    }
+    simStep(S);
+    S.out.length = 0;
+  }
+  assert.ok(moved / n > 0.9, `${moved} of ${n}`);
+});
+
+test("a sell that pushes him past THE MUG tips it: SPILLED shows first", () => {
+  const events = [ev(0, 1, 0.001)];
+  for (let s = 300; s < 400; s += 20) events.push(ev(s, -1, 0.002));
+  let spilledAt = -1, stageAfter = -1;
+  walk(events, 3, 500, (S) => {
+    if (spilledAt < 0 && S.spilled) { spilledAt = S.step; stageAfter = S.stage; }
   });
-  assert.ok(maxBefore <= 2, "passed THE MUG without a spill");
-  assert.ok(spillAt > 0 && spillAt - firstAbove >= SIM.SPILL_BOIL - 1, `spilled ${spillAt - firstAbove} steps after the boil began`);
-  assert.ok(S0.stage >= 3);
+  assert.ok(spilledAt > 0, "never tipped");
+  assert.equal(stageAfter, 3);
 });
 
 test("one big sell knocks the mug over at once: SPILLED plays, then two stages down", () => {
-  const events = [ev(0, 1, 0.05, 1e-8)];
-  for (let s = 10; s < 1200; s += 60) events.push(ev(s, 1, 0.02, 1e-8));
-  events.push(ev(1300, -1, 0.2, 1e-8));
-  events.push(ev(1340, -1, 0.001, 1e-8));
+  const events = [ev(0, 1, 0.05, 1e-8), ev(1300, -1, 0.2, 1e-8)];
   let before = -1, after = -1, later = -1;
   walk(events, 9, 1600, (S) => {
     if (S.step === 1300) before = S.stage;
@@ -113,7 +136,7 @@ test("one big sell knocks the mug over at once: SPILLED plays, then two stages d
   });
   assert.ok(before <= 2, `was at ${STAGES[before]} before the sell`);
   assert.equal(after, 3, "the spill shows first");
-  assert.equal(later, Math.max(3, before + 2));
+  assert.ok(later >= Math.max(3, before + 2), `landed at ${STAGES[later]}`);
 });
 
 test("after the spill a long enough high brings a fresh mug and he can come back up", () => {

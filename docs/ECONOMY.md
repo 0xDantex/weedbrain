@@ -77,43 +77,53 @@ A memecoin in its first minutes can run thousands of times its first price and t
 
 ## Mood and the mug
 
+The mood runs from 0 (SHADES OFF) to 1 (BLAST); the stage is `floor(mood * 10)` with 0.015 of hysteresis.
+
+**Every trade moves it at once.** A buy moves it toward SHADES OFF, a sell toward BLAST, by
+
 ```
-high  = burning / (burning + HIGH_REF)          HIGH_REF 1.5
-mood -> (1 - high) * 0.25 + melt * 0.75, at most MOOD_RATE (1/600) per step
-stage = floor(mood * 10), with 0.015 of hysteresis
+step = NUDGE_MIN + (NUDGE_MAX - NUDGE_MIN) * (size - 0.2) / 2.8      0.1 .. 0.3
 ```
 
-A full pile with the room full of joints is SHADES OFF (0). Nothing burning and nothing melted is THE MUG (2): sober, reaching for a drink. Nothing burning on bare ground is BLAST (9).
+where `size` is the trade on the log size scale above. The smallest trade that is not dust moves him one stage, the biggest three.
 
-The mug splits that line in two:
+**Between trades it drifts** back toward a baseline, with a time constant of 2 minutes (`DRIFT` 1/2400 per step):
+
+```
+baseline = 0.12 + melt * 0.5 - high * 0.12        high = burning / (burning + 1.5)
+```
+
+So a quiet chart settles him where the price is: EYES HEAVY at the high, around FISTS at 80% down.
+
+**The mug** splits the ladder at THE MUG and SPILLED:
 
 | rule | constant |
 |---|---|
-| while the mug is up the mood cannot reach SPILLED | stage 3 starts at mood 0.3 |
-| a sell of at least `max(SPILL_ETH, flow * SPAWN_STEPS * SPILL_FLOW)` knocks it over | 0.1 ETH, 5 |
-| a fresh mug cannot be knocked over by a sell for `MUG_SAFE` steps | 3,600 (3 min) |
-| the mood wanting past THE MUG for `SPILL_BOIL` steps tips it over too | 600 (30 s) |
-| a spill shows SPILLED for `SPILL_HOLD` steps, then he lands two stages below where he was | 40 (2 s) |
-| while the mug is down the mood cannot go back above SPILLED | |
-| wanting back above SPILLED for `REFILL_STEPS` brings a fresh mug | 200 (10 s) |
+| while the mug is up the mood cannot pass THE MUG | stage 3 starts at mood 0.3 |
+| a sell that would push him past it tips the mug, SPILLED shows first | |
+| a sell of at least `max(SPILL_ETH, flow * SPAWN_STEPS * SPILL_FLOW)` knocks it over from anywhere and drops him two stages | 0.1 ETH, 5 |
+| a fresh mug cannot be knocked over by a sell for `MUG_SAFE` steps | 200 (10 s) |
+| the baseline sitting past THE MUG for `SPILL_BOIL` steps tips it too | 600 (30 s) |
+| a spill keeps SPILLED on screen for `SPILL_HOLD` steps | 40 (2 s) |
+| a buy that brings him back above SPILLED brings a fresh mug | |
 
-The boil rule is there because a token can bleed on nothing but small sells. Without it he would sit at THE MUG through a 90% dump.
+The first version of this model moved the mood toward a target at a capped rate, with the drawdown weighing 75%. On HYDX, a token half way down from its high with buys and sells about even, that left him angry 78% of the time and the calm stages at 8.6%, while buys kept landing. Now each trade counts on its own.
 
-I tuned these on the two real logs. The first try (a spill at 0.045 ETH, no grace for a fresh mug, a refill only after a deep high) left him in SPILLED 42% and 46% of the time. The numbers now, from `tools/economy.js`:
+Measured with `tools/economy.js` (HYDX: 48 hours from launch, 18,414 trades):
 
-| | SNIFFR | FOMOFIED |
-|---|---|---|
-| spills | 4 (2 by a big sell, 2 boiled over) | 8 (3 by a big sell, 5 boiled over) |
-| fresh mugs | 3 | 7 |
-| SHADES OFF | 12.9% | 8.6% |
-| EYES HEAVY | 3.6% | 12.8% |
-| THE MUG | 27.0% | 36.8% |
-| SPILLED | 8.1% | 18.0% |
-| SOAKED | 19.8% | 9.1% |
-| FISTS | 9.4% | 7.7% |
-| SUIT ON | 3.3% | 5.0% |
-| AIMING | 1.7% | 1.9% |
-| FIRING | 7.2% | 0.0% |
-| BLAST | 7.1% | 0.0% |
+| | HYDX | SNIFFR | FOMOFIED |
+|---|---|---|---|
+| trades that move the mood | 91.3% | | |
+| spills (big sell / tipped / boiled) | 12 / 1,071 / 62 | 1 / 31 / 0 | 2 / 31 / 0 |
+| SHADES OFF | 17.5% | 40.9% | 44.3% |
+| EYES HEAVY | 11.9% | 12.6% | 14.4% |
+| THE MUG | 13.8% | 8.7% | 14.6% |
+| SPILLED | 13.5% | 6.9% | 8.8% |
+| SOAKED | 13.6% | 1.1% | 3.6% |
+| FISTS | 9.6% | 3.4% | 4.5% |
+| SUIT ON | 6.8% | 6.5% | 1.4% |
+| AIMING | 4.6% | 3.5% | 2.0% |
+| FIRING | 3.9% | 5.2% | 2.4% |
+| BLAST | 4.9% | 11.1% | 4.0% |
 
-FOMOFIED never hit the bottom in its 35 minutes. SNIFFR launched, pumped and dumped inside its 25 and went through all ten.
+Of the HYDX trades that did not move him, 3.2% were buys with him already at SHADES OFF, 1.5% sells with him already at BLAST, 1.9% sells against a mug less than 10 s old and 2.1% dust.

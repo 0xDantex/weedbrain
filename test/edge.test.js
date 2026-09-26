@@ -24,9 +24,9 @@ test("garbage events are ignored or clamped, never NaN", () => {
   }
 });
 
-test("empty log: he sits at THE MUG, mug full and nothing moves", () => {
+test("empty log: he settles at EYES HEAVY, mug full and nothing moves", () => {
   const S = walk([], 1, 5000);
-  assert.equal(S.stage, 2);
+  assert.equal(S.stage, 1);
   assert.equal(S.spilled, 0);
   assert.equal(S.joints.length + S.kills.length, 0);
 });

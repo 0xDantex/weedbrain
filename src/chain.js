@@ -394,7 +394,7 @@ export async function readTrades(rpc, meta, from, to, { curve = true, pool = tru
  * only: the trader never enters the log or the hash.
  */
 async function attachSwapTraders(rpc, meta, trades, from, to) {
-  // only the recent ones: the page shows the last 40 trades, and reading
+  // only the recent ones: the page shows the last 40 trades and reading
   // every Transfer since launch would double a cold start
   const need = trades.filter((t) => !t.trader && t.blk > to - 20_000);
   if (!need.length) return;

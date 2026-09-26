@@ -26,7 +26,9 @@ Why: the whole point is that every viewer and `replay.js` agree.
 Why: the scene has to be readable on real flow, not only on my synthetic streams.
 
 - on SNIFFR and FOMOFIED he visits at least six stages, no stage takes 60% or more and the caps hold
-- small sells alone never take him past THE MUG until the mood has wanted to for 30 s and then the mug goes
+- every trade moves the mood: a buy at least one stage toward SHADES OFF, a sell at least one toward BLAST, a bigger one further, at most three
+- on FOMOFIED more than 9 in 10 non-dust trades move the mood
+- a sell that pushes him past THE MUG tips it and SPILLED is the stage right after
 - one big sell tips the mug at once: SPILLED is on screen the next step and 2 s later he is two stages below where he was
 - after a spill, buys held long enough bring a fresh mug and he comes back up to EYES HEAVY or better
 - the size mapping is monotonic, zero under dust and 3 at most and 10x the trade is less than 3x the size
@@ -55,7 +57,7 @@ A fake node serves generated curve logs and v4 swaps with random latency (0 to 4
 Why: bad input must never produce NaN or a split.
 
 - garbage events (side 0 or 2, NaN, negative, Infinity, 1e12 and 1e-12 amounts) leave the state finite
-- an empty log idles at THE MUG with the mug full and nothing on screen
+- an empty log settles at EYES HEAVY with the mug full and nothing on screen
 - prices from 1e-12 to 1e12 stay finite
 - 300,000 steps run and stay finite
 - an event for a step already played is skipped

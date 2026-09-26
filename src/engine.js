@@ -29,13 +29,15 @@ export const SIM = {
   DOUSE_DEBT: 0.05,
   DEBT_HEAL: 0.99955,
   HIGH_REF: 1.5, // burning length at which the high is half way
-  MOOD_RATE: 1 / 600, // a full sweep from SHADES OFF to BLAST takes 30 s at least
+  NUDGE_MIN: 0.1, // every trade moves the mood at least one stage (a stage is 0.1)
+  NUDGE_MAX: 0.3, // and the biggest (size 3) three stages
+  DRIFT: 1 / 2400, // between trades the mood drifts toward its baseline with a time constant of 2 minutes
   SPILL_ETH: 0.1, // a sell at least this big (and SPILL_FLOW entities' worth) knocks the mug over
   SPILL_FLOW: 5,
   SPILL_BOIL: 600, // or the mood wanting past THE MUG for 30 s straight
   REFILL_MOOD: 0.3, // spilled, wanting back above SPILLED for REFILL_STEPS brings a fresh mug
   REFILL_STEPS: 200,
-  MUG_SAFE: 3600, // a fresh mug cannot be knocked over by a sell for 3 minutes
+  MUG_SAFE: 200, // a fresh mug cannot be knocked over by a sell for 10 s
   SPILL_HOLD: 40, // steps SPILLED stays on screen after the mug goes, so the spill always plays
   STAGE_HYST: 0.015,
   BAR_STEPS: 1200, // ATH is taken from closed one-minute bars
@@ -224,6 +226,7 @@ export function applyEvent(S, ev) {
   S.vol += q;
   const spawned = [];
   emit(S, { t: "trade", side, eth: q, tok: ev.tok || 0, tx: ev.tx || "", blk: ev.blk || 0, trader: ev.trader || "", step: S.step, spawned });
+  nudge(S, side, q, ev);
   if (q >= SIM.DUST) {
     const thr = Math.max(SIM.SIZE_REF, S.flow * SIM.SPAWN_STEPS);
     const evVol = Math.max(thr, q);
@@ -269,12 +272,12 @@ export function applyEvent(S, ev) {
   }
 }
 
-function spill(S, cause, tx, eth = 0) {
+function spill(S, cause, tx, eth = 0, drop = 2) {
   S.spilled = 1;
   S.boil = 0;
   S.dry = 0;
-  // the spill always plays first, then he lands two stages below where he was
-  const to = Math.min(9, Math.max(MUG + 1, S.stage + 2));
+  // the spill always plays first, then he lands `drop` stages below where he was
+  const to = Math.min(9, Math.max(MUG + 1, S.stage + drop));
   S.mood = Math.max(S.mood, to / 10 + 0.03);
   emit(S, { t: "spill", cause, tx: tx || "", eth, from: S.stage, to });
   if (S.stage !== MUG + 1) {
@@ -282,6 +285,50 @@ function spill(S, cause, tx, eth = 0) {
     S.stage = MUG + 1;
   }
   S.hold = SIM.SPILL_HOLD;
+}
+
+/** Where the mood settles when nothing trades. */
+function baseline(S) {
+  return cl(0.12 + cl(S.melt, 0, 1) * 0.5 - S.high * 0.12, 0, 1);
+}
+
+// The mug splits the ladder at THE MUG / SPILLED.
+function clampToMug(S) {
+  const edge = (MUG + 1) / 10;
+  if (!S.spilled && S.mood >= edge) S.mood = edge - 0.0001;
+  if (S.spilled && S.mood < edge) S.mood = edge;
+}
+
+function refill(S) {
+  S.spilled = 0;
+  S.dry = 0;
+  S.mugAge = 0;
+  emit(S, { t: "refill" });
+}
+
+/**
+ * One trade moves his mood right away: a buy toward SHADES OFF, a sell
+ * toward BLAST, one stage for the smallest trade and up to three for the
+ * biggest, on the log size scale. A sell
+ * that pushes him past THE MUG knocks it over (unless the mug is fresh); a
+ * buy that pulls him back above SPILLED brings a fresh one.
+ */
+function nudge(S, side, q, ev) {
+  const size = sizeOf(q);
+  if (!size) return;
+  const edge = (MUG + 1) / 10;
+  const step = SIM.NUDGE_MIN + ((SIM.NUDGE_MAX - SIM.NUDGE_MIN) * (size - 0.2)) / 2.8;
+  const next = cl(S.mood - side * step, 0, 1);
+  if (side < 0 && !S.spilled && next >= edge && S.mugAge >= SIM.MUG_SAFE) {
+    S.mood = next;
+    spill(S, "tip", ev.tx, q, 1);
+    return;
+  }
+  if (side > 0 && S.spilled && next < edge) {
+    refill(S);
+  }
+  S.mood = next;
+  clampToMug(S);
 }
 
 function closeBar(S) {
@@ -347,32 +394,22 @@ export function simStep(S) {
   const meltT = cl(drop + S.debt, 0, 1.05);
   S.melt += (meltT - S.melt) * 0.06;
 
-  // mood: 0 is SHADES OFF, 1 is BLAST. Burning joints pull toward 0, the melt
-  // pushes toward 1. Nothing burning and a full pile lands on THE MUG. The
-  // mood moves at a capped rate so every stage in between plays out.
+  // mood: 0 is SHADES OFF, 1 is BLAST. Every trade moves it at once (see
+  // nudge). Between trades it drifts toward a baseline set by the pile and
+  // the joints still burning, so a quiet chart settles where the price is.
   S.high = burning / (burning + SIM.HIGH_REF);
-  const moodT = cl((1 - S.high) * 0.25 + cl(S.melt, 0, 1) * 0.75, 0, 1);
-
-  // The mug splits the ladder. Until it spills the mood cannot pass THE MUG;
-  // once spilled it cannot come back above SPILLED until a real high holds.
+  const base = baseline(S);
   const edge = (MUG + 1) / 10;
   if (!S.spilled) {
     S.mugAge++;
-    S.boil = moodT >= edge ? S.boil + 1 : 0;
+    S.boil = base >= edge && S.mood >= edge - 0.01 ? S.boil + 1 : 0;
     if (S.boil >= SIM.SPILL_BOIL) spill(S, "boil", "");
   } else {
-    S.dry = moodT < SIM.REFILL_MOOD ? S.dry + 1 : 0;
-    if (S.dry >= SIM.REFILL_STEPS) {
-      S.spilled = 0;
-      S.dry = 0;
-      S.mugAge = 0;
-      emit(S, { t: "refill" });
-    }
+    S.dry = base < edge && S.mood <= edge + 0.01 ? S.dry + 1 : 0;
+    if (S.dry >= SIM.REFILL_STEPS) refill(S);
   }
-  const d = cl(moodT - S.mood, -SIM.MOOD_RATE, SIM.MOOD_RATE);
-  S.mood = cl(S.mood + d, 0, 1);
-  if (!S.spilled && S.mood >= edge) S.mood = edge - 0.0001;
-  if (S.spilled && S.mood < edge) S.mood = edge;
+  S.mood = cl(S.mood + (base - S.mood) * SIM.DRIFT, 0, 1);
+  clampToMug(S);
 
   // the named stage has hysteresis so it does not flicker on a boundary
   const raw = Math.min(9, Math.floor(S.mood * 10));

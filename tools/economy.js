@@ -13,7 +13,7 @@ const args = parseArgs();
 function report(name, events, seed, steps) {
   const S = genesis(seed);
   const h = new Array(10).fill(0);
-  let i = 0, peakJ = 0, peakK = 0, spawnedJ = 0, spawnedK = 0, spills = { sell: 0, boil: 0 }, refills = 0;
+  let i = 0, peakJ = 0, peakK = 0, spawnedJ = 0, spawnedK = 0, spills = { sell: 0, boil: 0, tip: 0 }, moved = 0, trades = 0, lastStage = 2, pendingTrade = -1, refills = 0;
   for (let s = 0; s < steps; s++) {
     while (i < events.length && events[i].step <= S.step) {
       if (events[i].step === S.step) applyEvent(S, events[i]);
@@ -24,10 +24,15 @@ function report(name, events, seed, steps) {
       if (r.t === "joint" && !r.merged) spawnedJ++;
       if (r.t === "kill") spawnedK++;
       if (r.t === "spill") spills[r.cause]++;
+      if (r.t === "trade" && r.eth >= SIM.DUST) { trades++; pendingTrade = S.step; }
       if (r.t === "refill") refills++;
     }
     S.out.length = 0;
     h[S.stage]++;
+    // did the stage move within 3 s (60 steps) of a trade
+    if (pendingTrade >= 0 && S.stage !== lastStage) { moved++; pendingTrade = -1; }
+    if (pendingTrade >= 0 && S.step - pendingTrade > 60) pendingTrade = -1;
+    lastStage = S.stage;
     peakJ = Math.max(peakJ, S.joints.length);
     peakK = Math.max(peakK, S.kills.length);
   }
@@ -39,7 +44,8 @@ function report(name, events, seed, steps) {
   console.log(`  spawned         ${spawnedJ} joints from ${buys} buys, ${spawnedK} buzzkills from ${events.length - buys} sells`);
   console.log(`  peak on screen  ${peakJ} joints, ${peakK} buzzkills`);
   console.log(`  buzzkills       ${S.repelled} stopped, ${S.arrived} got through`);
-  console.log(`  the mug         spilled ${spills.sell + spills.boil} times (${spills.sell} by a big sell, ${spills.boil} boiled over), refilled ${refills} times`);
+  console.log(`  the mug         spilled ${spills.sell + spills.boil + spills.tip} times (${spills.sell} by a big sell, ${spills.tip} tipped by a sell, ${spills.boil} boiled over), refilled ${refills} times`);
+  console.log(`  reacts          ${((moved / Math.max(1, trades)) * 100).toFixed(1)}% of non-dust trades change the stage within 3 s`);
   console.log("  time per stage  " + STAGES.map((n, k) => `${n} ${((h[k] / steps) * 100).toFixed(1)}%`).join(", "));
 }
 

@@ -47,8 +47,9 @@ Nothing here is a metaphor. Each rule maps to one thing on the chain.
 | which buzzkill (cop, mom, fed, priest) | the transaction hash picks it, not me |
 | a buzzkill reaches him and douses the longest joint | the sell arriving, a big one douses two |
 | the bud pile, waist-high at the high, gone at 80% down | `1 - price / high`, plus a debt for every buzzkill that got through, which heals slowly |
-| the mug goes over | a sell of at least 0.1 ETH and five times the token's recent flow, or a mood that stayed sour for 30 s |
-| the stage (ten of them) | how much is burning against how much of the pile is gone, split by the mug |
+| every trade moves his mood at once | a buy one to three stages toward SHADES OFF, a sell one to three toward BLAST, more for a bigger trade |
+| the mug goes over | a sell that pushes him past THE MUG, or one of at least 0.1 ETH and five times the token's recent flow, which drops him two stages |
+| between trades | the mood drifts back to where the pile and the burning joints put it, over about 2 minutes |
 
 The trader is read from the event fields (the recipient of a buy, the seller of a sell), not from the transaction sender. On this chain a relayer submits most transactions, so `tx.from` is infrastructure.
 
@@ -71,7 +72,7 @@ The trader is read from the event fields (the recipient of a buy, the seller of 
 
 Frames 31-35 do not exist in the art set. Stage 7 starts at frame 36.
 
-The mug splits the ladder. Without a spill he never goes past THE MUG, however bad the chart looks and with the mug gone he never comes back above SPILLED until the buys hold him there for 10 s. So the turn from calm to angry is always an event you can point at in the feed, never a slow slide.
+Every trade moves him right away: the smallest one stage, the biggest three, buys up the ladder and sells down it. On the 48 hours of HYDX since launch 91.3% of trades moved his mood; the rest hit him at the top or the bottom of the ladder, at a fresh mug or were dust. The mug splits the ladder: the sell that takes him past THE MUG knocks it over and SPILLED plays first and the buy that brings him back above SPILLED brings a fresh one.
 
 ![The bottom: BLAST, the pile gone](docs/img/blast.png)
 
@@ -162,7 +163,7 @@ node tools/rpc-check.js  block time, RPC latency and log limits, measured now
 | file | checks |
 |---|---|
 | `test/determinism.test.js` | the same hash at 1, 3, 17, 60 and 1,000 steps per frame, on irregular frames, under a 0.01 ms catch-up budget, after a restore from any snapshot and for two demo viewers who open the page 25 minutes apart |
-| `test/economy.test.js` | on two real tokens (one on the curve, one graduated to v4) he visits at least six stages and no stage takes more than 60% of the time. The mug: small sells alone only tip it after 30 s of boiling, one big sell tips it at once with SPILLED shown first, a held high brings a fresh one. Also the log size mapping, aggregation on a token with 9,600 trades a minute, a fresh launch that pumps past 1,000x and retraces 47% and the extremes (only buys, only sells) |
+| `test/economy.test.js` | on two real tokens (one on the curve, one graduated to v4) he visits at least six stages and no stage takes more than 60% of the time. Every trade moves the mood one to three stages by its size and over 9 in 10 trades of a real graduated token move it. A sell past THE MUG tips the mug with SPILLED shown first, one big sell drops him two stages. Also the log size mapping, aggregation on a token with 9,600 trades a minute, a fresh launch that pumps past 1,000x and retraces 47% and the extremes (only buys, only sells) |
 | `test/feed.test.js` | a fake node with random latency, a head that runs ahead of its logs, a 10,000-log style refusal and a graduation halfway through: no trade lost, none late. A control run with a node lagging past the safety margin does lose trades, so the test can fail |
 | `test/edge.test.js` | garbage events, prices from 1e-12 to 1e12, 300,000 steps, late events, tampered snapshots, the RNG sign trap, my keccak and v4 pool id against viem and real captured logs decoding to the side their token `Transfer` shows |
 
