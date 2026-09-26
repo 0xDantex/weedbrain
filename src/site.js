@@ -487,7 +487,7 @@ async function boot() {
     const pile = Math.max(0, 1 - Math.min(1, S.melt) / 0.8);
     set("hero-stage", `${pad2(S.stage + 1)}/10 ${STAGES[S.stage]}`);
     set("hero-joints", `${n} JOINT${n === 1 ? "" : "S"} BURNING`);
-    set("hero-time", `${hms(Date.now() - stageSince)} IN STATE`);
+    set("hero-time", hms(Date.now() - stageSince));
     set("hash", `${simHash(S)} @${S.step}`);
     set("g-joints", String(n));
     set("g-pile", `${Math.round(pile * 100)}`);

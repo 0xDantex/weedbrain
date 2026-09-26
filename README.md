@@ -20,10 +20,10 @@ The story has a hinge. At first he is flat out in the pile with his shades on, t
 
 The site is built like a lab instrument, not a crypto landing page: paper background, thin rules, one accent (the ember orange), monospaced tabular numbers everywhere, headings small and rare.
 
-![The hero: the live clip of his current state and the instrument strip](docs/img/site-hero.png)
+![The first screen: the contract bar and the live specimen](docs/img/site-hero.png)
 
-- **The header** stays on top: the contract in full with a copy button and the buy button, which stays inactive until `ca` is set.
-- **The hero** plays the clip of his current state. Under it: the stage, the joints burning, the time in state, then a strip of counters: holders, trades in 24 h, market cap in ETH, the stage, the last update and the block.
+- **The first screen** is the live specimen. Above it only a short title and one low bar with the contract, a copy button and the buy button, which stays inactive until `ca` is set. The header with the buy button stays on top while scrolling.
+- **The counters** under the scene: holders, trades in 24 h, market cap in ETH, the stage, the time in it, the last update and the block.
 - **The live specimen** is the scene, with a ten-step scale on the left and gauges on the right (joints burning, the bud pile in percent of its maximum, buzzkills inbound, the mug) and the trade tape under it, every row a Blockscout link. Each trade also pops a card in the corner for 4 s: a buy in orange with `+ETH` and `a joint lands`, a sell in red with `buzzkill incoming`. When the mug goes, a full-width `THE MUG IS DOWN` card drops and the scene shakes.
 - **The brain of a joint** is a made-up anatomy plate: a point cloud of about 58,000 neurons packed into bud-shaped lumps, with thin shells where the lobes end, drawn with three.js and turning slowly (drag to rotate). Six regions answer to the chain: a buy lights the CB1 LOBE, a sell heats the EMBER NUCLEUS, a buzzkill wakes the PARANOIA TRACT, a spill jolts the MUG CORTEX, the pile sets the BUD GANGLION and the MUNCHIE NERVE never stops. Hovering a region or its label dims the rest and opens a card. Under it a coupling matrix, the buys and sells of the last 5 minutes with the mood line and a count of cell types, all moving with the trades. It says it is a joke under the plate, because it is.
 - **The rest:** the three rules, the ten states (hover plays the clip, the current one is outlined), what this is not, the footer.
