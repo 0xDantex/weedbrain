@@ -15,7 +15,7 @@ const FW = 672;
 const FH = 720;
 const FX = (RW - FW) / 2;
 const CX = RW / 2;
-const PILE_MAX = 250; // pile height at the high: up to his waist
+const PILE_MAX = 170; // pile height at the high: up to his waist
 const MELT_BARE = 0.8; // at 80% down the pile is gone
 const KILL_NEAR = 300; // where a buzzkill stands when it reaches him
 const SCALE = 5; // buzzkill pixel scale
@@ -124,35 +124,6 @@ export class Renderer {
     this.lastT = 0;
   }
 
-  /** A small blurred cover of a frame, made once per frame and kept. */
-  backdrop(n, img) {
-    if (!this.bd) this.bd = new Map();
-    let c = this.bd.get(n);
-    if (c) return c;
-    const w = 320, h = 180;
-    c = document.createElement("canvas");
-    c.width = w;
-    c.height = h;
-    const x = c.getContext("2d");
-    x.fillStyle = "#fff";
-    x.fillRect(0, 0, w, h);
-    x.filter = "blur(18px) saturate(1.2)";
-    // cover: the frame scaled to the full width, its upper middle in view
-    // two copies, pushed out to the sides, so each side takes the colours of
-    // the edge of the frame next to it and no shape is left to recognise
-    const sh = (w / img.naturalWidth) * img.naturalHeight * 0.9;
-    x.drawImage(img, -w * 0.55, -sh * 0.2, w, sh);
-    x.drawImage(img, w * 0.55, -sh * 0.2, w, sh);
-    x.globalAlpha = 0.6;
-    x.drawImage(img, 0, -sh * 0.2, w, sh);
-    x.globalAlpha = 1;
-    x.filter = "none";
-    x.fillStyle = "rgba(244, 241, 234, 0.5)";
-    x.fillRect(0, 0, w, h);
-    this.bd.set(n, c);
-    return c;
-  }
-
   handle(rec, live) {
     if (rec.t === "joint" && !rec.merged && live) {
       this.jv.set(rec.id, { drop: 0, slot: Math.random() });
@@ -189,13 +160,19 @@ export class Renderer {
   /** Rebuild the pile layer when its height moved by a pixel or more. */
   buildPile(level) {
     const h0 = Math.round(level * PILE_MAX);
-    if (this.pileLevel >= 0 && h0 === Math.round(this.pileLevel * PILE_MAX)) return;
+    if (this.pileLevel >= 0 && h0 === Math.round(this.pileLevel * PILE_MAX) && this.pileW === this.picW) return;
     this.pileLevel = level;
+    this.pileW = this.picW;
     const top = this.top;
     const bumpAmp = Math.min(1, level * 5);
+    // the sides of the scene are banked up with buds: mounds that rise from
+    // the edge of the picture outward, and melt with the rest of the pile
+    const half = (this.picW || 700) / 2 - 40;
+    const bank = Math.round(110 + 150 * level);
     for (let x = 0; x < RW; x++) {
       const d = (x - CX) / 420;
-      let h = h0 * (0.5 + 0.5 * Math.exp(-d * d));
+      const out = Math.max(0, Math.abs(x - CX) - half) / (RW / 2 - half);
+      let h = h0 * (0.5 + 0.5 * Math.exp(-d * d)) + bank * Math.sin(Math.min(1, out) * Math.PI / 2) ** 1.3;
       let b = 0;
       for (const u of this.bumps) {
         const dx = x - u.x;
@@ -248,10 +225,13 @@ export class Renderer {
     if (fnum !== this.shownFrame) {
       const img = this.frames.get(fnum);
       if (img && img.complete && img.naturalWidth) {
-        // the sides: the same frame blown up to the full width, blurred and
-        // washed out, so the scene is filled edge to edge in its own colours
-        this.actx.drawImage(this.backdrop(fnum, img), 0, 0, RW, RH);
-        this.actx.drawImage(img, FX, RH - FH, FW, FH);
+        // the picture at its own proportions in the middle of a paper-white
+        // scene; its edges fade out and the bud mounds fill the sides
+        const w = (img.naturalWidth * FH) / img.naturalHeight;
+        this.actx.fillStyle = "#fff";
+        this.actx.fillRect(0, 0, RW, RH);
+        this.actx.drawImage(img, (RW - w) / 2, RH - FH, w, FH);
+        this.picW = w;
         this.shownFrame = fnum;
       }
     }

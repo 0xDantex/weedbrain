@@ -1,17 +1,16 @@
 """Build the scene's assets from the 45 source frames (1400 x 1400).
 
-  art/frames/weedbrain_frame_NN.webp  ->  src/frames/NN.webp   672 x 720, sides faded to transparent
+  art/frames/weedbrain_frame_NN.webp  ->  src/frames/NN.webp   the picture at its own proportions, 720 tall, edges fading out
                                           src/frames/buds.webp the bud texture the pile layer is cut from
 
-The source frames were cut out of a sheet and come in two shapes. Three of
-every five are a 1280 x ~1370 panel with a white margin on the left and
-right, a dark border line at the bottom and a sliver of the next panel
-under it. The other two are the same picture squashed into 1400 x 1017,
-with white bands above and below. `panel()` finds the picture inside
-each frame and every frame is resized to one 672 x 720 box, which undoes
-the squash. Measured on frames 3 and 4: after unsquashing, the mean pixel
-difference to the neighbouring frame is 48.8, against 44.6 between two
-unsquashed neighbours and 77.7 if the squashed frame is only scaled.
+The source frames were cut out of a sheet and come in two shapes: three of
+every five are a portrait panel of about 1280 x 1370 with a white margin on
+the left and right, a dark border line at the bottom and a sliver of the next
+panel under it; the other two are a landscape picture of 1400 x ~1010 with
+white bands above and below. They are two framings, not one picture
+squashed: `panel()` finds the picture inside each frame and it keeps its own
+proportions. (An earlier version stretched the landscape ones to the portrait
+box and the character came out too tall.)
 
 Frames 31-35 do not exist in the set. Nothing is redrawn and nothing is
 scaled above its source size.
@@ -23,8 +22,9 @@ from PIL import Image, ImageFilter
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "art/frames"
 OUT = ROOT / "src/frames"
-FW, FH = 672, 720
-FADE = 90  # px on the left and right edge, where the picture meets the wide white scene
+SW, SH = 1280, 720  # the whole scene
+FH = SH
+FADE = 80  # px on the left and right edge, where the picture meets the wide white scene
 
 
 def frame(n):
@@ -55,17 +55,21 @@ def panel(im):
 
 
 def scene_frame(im):
-    out = im.crop(panel(im)).resize((FW, FH), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2.0, percent=95, threshold=3))
-    a = np.asarray(out).astype(np.float32)
-    ramp = np.ones(FW, np.float32)
-    ramp[:FADE] = np.linspace(0, 1, FADE) ** 1.5
-    ramp[-FADE:] = ramp[:FADE][::-1]
-    # the sides fade to transparent, so the backdrop the scene paints behind
-    # the frame shows through instead of a white band
-    alpha = (ramp[None, :] * 255).repeat(FH, 0)
-    rgba = np.dstack([a.clip(0, 255), alpha]).astype(np.uint8)
-    return Image.fromarray(rgba, "RGBA")
+    """The picture at its own proportions, 720 px tall.
 
+    The portrait panels come out about 673 wide, the landscape ones about
+    1000: each keeps the shape it was drawn in. The left and right edges fade
+    to transparent over FADE px so the picture sits in the wide scene with no
+    hard border; the scene fills the rest.
+    """
+    pic = im.crop(panel(im))
+    w = round(pic.width * SH / pic.height)
+    pic = pic.resize((w, SH), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2.0, percent=95, threshold=3))
+    ramp = np.ones(w, np.float32)
+    ramp[:FADE] = np.linspace(0, 1, FADE) ** 1.4
+    ramp[-FADE:] = ramp[:FADE][::-1]
+    alpha = (ramp[None, :] * 255).repeat(SH, 0)
+    return Image.fromarray(np.dstack([np.asarray(pic), alpha.astype(np.uint8)]), "RGBA")
 
 def buds():
     """A 1280 x 260 bud texture at the scale the scene draws frames.

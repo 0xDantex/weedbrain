@@ -69,8 +69,8 @@ function header(cfg) {
     set("ca", ca);
     document.querySelectorAll("[data-ca]").forEach((e) => (e.textContent = ca));
     const btn = $("copy");
-    btn.hidden = false;
-    btn.onclick = async () => {
+    if (btn) btn.hidden = false;
+    if (btn) btn.onclick = async () => {
       await navigator.clipboard.writeText(ca);
       btn.textContent = "COPIED";
       setTimeout(() => (btn.textContent = "COPY"), 1400);
