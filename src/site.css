@@ -161,7 +161,7 @@ section { border-bottom: 1px solid var(--rule); padding: 56px 0; scroll-margin-t
 .scale li.past { color: var(--dim); }
 .scale li.now { color: var(--ember); font-weight: 600; background: #fff4ee; }
 .scale li.now i { width: 22px; height: 3px; }
-.stage-box { position: relative; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 290px) * 16 / 9)); justify-self: center; align-self: start; background: #fff; border: 1px solid var(--rule-dark); border-radius: 4px; overflow: hidden; }
+.stage-box { position: relative; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 290px) * 16 / 9)); justify-self: center; align-self: start; background: #0b0a08; border: 1px solid var(--rule-dark); border-radius: 4px; overflow: hidden; }
 .stage-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .stage-box.shake { animation: shake 0.5s linear 2; }
 @keyframes shake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 4px); } }

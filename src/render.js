@@ -95,8 +95,11 @@ export class Renderer {
    * art: canvas for the character, fx: canvas for this buffer.
    * frames: Map frame number -> image. buds: ImageData of buds.webp.
    */
-  constructor(art, fx, frames, buds, { reducedMotion = false } = {}) {
-    for (const c of [art, fx]) { c.width = RW; c.height = RH; }
+  constructor(art, fx, frames, buds, { reducedMotion = false, bg = null } = {}) {
+    for (const c of [art, fx, bg].filter(Boolean)) { c.width = RW; c.height = RH; }
+    this.bgx = bg ? bg.getContext("2d") : null;
+    this.embers = Array.from({ length: 70 }, () => ({ x: Math.random() * RW, y: Math.random() * RH, v: 8 + Math.random() * 22, r: 0.8 + Math.random() * 2.2, ph: Math.random() * 6.28 }));
+    this.orbs = Array.from({ length: 9 }, (_, i) => ({ x: Math.random() * RW, y: 80 + Math.random() * 420, r: 60 + Math.random() * 140, v: (Math.random() - 0.5) * 6, ph: i }));
     this.actx = art.getContext("2d");
     this.actx.imageSmoothingQuality = "high";
     this.ctx = fx.getContext("2d");
@@ -143,6 +146,63 @@ export class Renderer {
     } else if (rec.t === "spill" && live) {
       this.splash(CX + 60, RH - 260, 0x5a2e14, 70);
     }
+  }
+
+  /**
+   * The room behind him: a dark grow-room glow that warms from green to
+   * ember as he gets angrier, slow haze orbs and embers drifting up.
+   */
+  background(S, tm, dt, motion) {
+    const x = this.bgx;
+    const m = Math.max(0, Math.min(1, S.mood));
+    const lerp = (a, b) => a.map((v, i) => Math.round(v + (b[i] - v) * m));
+    const inner = lerp([58, 74, 28], [110, 34, 18]);
+    const mid = lerp([22, 30, 14], [38, 14, 10]);
+    const g = x.createRadialGradient(CX, 300, 20, CX, 360, 820);
+    g.addColorStop(0, `rgb(${inner})`);
+    g.addColorStop(0.45, `rgb(${mid})`);
+    g.addColorStop(1, "#0b0a08");
+    x.fillStyle = g;
+    x.fillRect(0, 0, RW, RH);
+    // a faint lab grid, like the brain plate
+    x.strokeStyle = "rgba(237,233,224,0.045)";
+    x.lineWidth = 1;
+    x.beginPath();
+    for (let gx = 0.5; gx < RW; gx += 40) { x.moveTo(gx, 0); x.lineTo(gx, RH); }
+    for (let gy = 0.5; gy < RH; gy += 40) { x.moveTo(0, gy); x.lineTo(RW, gy); }
+    x.stroke();
+    // haze orbs
+    const glow = m > 0.5 ? "232,84,30" : "181,204,106";
+    for (const o of this.orbs) {
+      if (motion) o.x = (o.x + o.v * dt + RW + 300) % (RW + 300) - 150;
+      const a = 0.05 + 0.04 * Math.sin(tm * 0.5 + o.ph);
+      const rg = x.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+      rg.addColorStop(0, `rgba(${glow},${a})`);
+      rg.addColorStop(1, `rgba(${glow},0)`);
+      x.fillStyle = rg;
+      x.fillRect(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2);
+    }
+    // embers rising, more and hotter when he is angry
+    const n = Math.round(20 + 50 * m);
+    for (let i = 0; i < n; i++) {
+      const e = this.embers[i];
+      if (motion) {
+        e.y -= e.v * dt * (0.6 + m);
+        e.x += Math.sin(tm + e.ph) * 0.3;
+        if (e.y < -10) { e.y = RH + 10; e.x = Math.random() * RW; }
+      }
+      const tw = 0.5 + 0.5 * Math.sin(tm * 3 + e.ph);
+      x.fillStyle = m > 0.5 ? `rgba(245,166,35,${0.35 + 0.5 * tw})` : `rgba(214,232,150,${0.2 + 0.4 * tw})`;
+      x.beginPath();
+      x.arc(e.x, e.y, e.r, 0, 6.283);
+      x.fill();
+    }
+    // vignette
+    const v = x.createRadialGradient(CX, RH / 2, RH * 0.45, CX, RH / 2, RW * 0.72);
+    v.addColorStop(0, "rgba(0,0,0,0)");
+    v.addColorStop(1, "rgba(0,0,0,0.55)");
+    x.fillStyle = v;
+    x.fillRect(0, 0, RW, RH);
   }
 
   splash(x, y, color, n) {
@@ -228,13 +288,13 @@ export class Renderer {
         // the picture at its own proportions in the middle of a paper-white
         // scene; its edges fade out and the bud mounds fill the sides
         const w = (img.naturalWidth * FH) / img.naturalHeight;
-        this.actx.fillStyle = "#fff";
-        this.actx.fillRect(0, 0, RW, RH);
+        this.actx.clearRect(0, 0, RW, RH);
         this.actx.drawImage(img, (RW - w) / 2, RH - FH, w, FH);
         this.picW = w;
         this.shownFrame = fnum;
       }
     }
+    if (this.bgx) this.background(S, tm, dt, motion);
     const tArt = performance.now();
 
     // the pile: the melt is the drawdown, a bare floor at MELT_BARE

@@ -65,11 +65,41 @@ def scene_frame(im):
     pic = im.crop(panel(im))
     w = round(pic.width * SH / pic.height)
     pic = pic.resize((w, SH), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2.0, percent=95, threshold=3))
+    rgb, alpha = key_white(pic)
     ramp = np.ones(w, np.float32)
     ramp[:FADE] = np.linspace(0, 1, FADE) ** 1.4
     ramp[-FADE:] = ramp[:FADE][::-1]
-    alpha = (ramp[None, :] * 255).repeat(SH, 0)
-    return Image.fromarray(np.dstack([np.asarray(pic), alpha.astype(np.uint8)]), "RGBA")
+    alpha = alpha * ramp[None, :]
+    return Image.fromarray(np.dstack([rgb, (alpha * 255).clip(0, 255)]).astype(np.uint8), "RGBA")
+
+
+def key_white(pic):
+    """Lift the paper-white background off a frame so the scene can paint its own.
+
+    Background is what is bright, unsaturated and connected to the frame's
+    border: the white sky and the grey smoke drifting through it. Whites
+    inside the drawing (teeth, eyes, the mug) are not connected to the border
+    and stay. Pure white goes fully clear; the smoke keeps an alpha from how
+    grey it is and is recoloured to a pale smoke, so it reads on a dark scene.
+    """
+    from scipy import ndimage as ndi
+    a = np.asarray(pic.convert("RGB")).astype(np.float32)
+    mn = a.min(2)
+    sat = a.max(2) - mn
+    cand = (mn > 150) & (sat < 40)
+    lab, _ = ndi.label(cand)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    bg = np.isin(lab, list(edge))
+    alpha = np.ones(mn.shape, np.float32)
+    t = np.clip((255 - mn) / 110, 0, 1)
+    alpha[bg] = t[bg] ** 0.9
+    alpha = ndi.gaussian_filter(alpha, 0.7)
+    smoke = np.array([226, 222, 212], np.float32)
+    a[bg] = smoke
+    # blend the recolour in softly at the border of the background
+    soft = ndi.gaussian_filter(bg.astype(np.float32), 1.0)[..., None]
+    rgb = np.asarray(pic.convert("RGB")).astype(np.float32) * (1 - soft) + smoke * soft
+    return rgb, alpha
 
 def buds():
     """A 1280 x 260 bud texture at the scale the scene draws frames.
