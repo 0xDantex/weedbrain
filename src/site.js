@@ -295,20 +295,42 @@ function atlas(buds) {
 }
 
 // ---------- the three panels under the brain ----------
+// Drawn like the brain itself: dark glass, thin grids, light that glows.
 function panels(brain) {
   const m = $("p-matrix"), a = $("p-activity"), c = $("p-cells");
   if (!m) return null;
-  const ink = "#1C1A17", dim = "#7A736A", rule = "#D8D2C6", bud = "#7E9445", budDark = "#4F5F2C", ember = "#E8541E", blood = "#B4342A";
+  const C = { grid: "rgba(237,233,224,0.07)", text: "#9a9285", hi: "#EDE9E0", bud: "#b5cc6a", budDim: "rgba(181,204,106,", ember: "#E8541E", yellow: "#F5A623", blood: "#e0533f" };
   const coact = REGIONS.map(() => REGIONS.map(() => 0));
   const buckets = new Map(); // 10 s bucket -> {b, s}
   const moods = [];
-  const font = "10px 'IBM Plex Mono', monospace";
+  const font = (px, w = 400) => `${w} ${px}px 'IBM Plex Mono', monospace`;
+  // crisp on any DPR: size each buffer from its CSS box
+  const fit = (cv) => {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    const w = cv.clientWidth, h = Math.round(w * (cv.dataset.ratio || 0.55));
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px"; }
+    const x = cv.getContext("2d");
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, w, h);
+    return [x, w, h];
+  };
+  const gridLines = (x, w, h, step) => {
+    x.strokeStyle = C.grid;
+    x.lineWidth = 1;
+    x.beginPath();
+    for (let gx = 0.5; gx < w; gx += step) { x.moveTo(gx, 0); x.lineTo(gx, h); }
+    for (let gy = 0.5; gy < h; gy += step) { x.moveTo(0, gy); x.lineTo(w, gy); }
+    x.stroke();
+  };
+  const glow = (x, color, blur) => { x.shadowColor = color; x.shadowBlur = blur; };
+  const noGlow = (x) => { x.shadowBlur = 0; };
+  let t0 = performance.now();
   return {
     trade(r, t) {
       const k = Math.floor(t / 10000);
-      const x = buckets.get(k) || { b: 0, s: 0 };
-      if (r.side > 0) x.b++; else x.s++;
-      buckets.set(k, x);
+      const v = buckets.get(k) || { b: 0, s: 0 };
+      if (r.side > 0) v.b++; else v.s++;
+      buckets.set(k, v);
     },
     fired(key) {
       const i = REGIONS.findIndex((g) => g.key === key);
@@ -316,89 +338,115 @@ function panels(brain) {
     },
     draw(S, now) {
       if (!moods.length || now - moods.at(-1).t > 2000) { moods.push({ t: now, v: S.mood }); if (moods.length > 160) moods.shift(); }
-      // matrix
-      let x = m.getContext("2d");
-      x.clearRect(0, 0, m.width, m.height);
-      x.font = font;
-      const n = REGIONS.length, cell = 28, ox = Math.round((m.width - n * cell) / 2 + 30), oy = 14;
+      const scan = ((now - t0) / 3000) % 1;
+
+      // connectivity: a lattice of nodes, brighter and warmer where regions fire together
+      let [x, W, H] = fit(m);
+      gridLines(x, W, H, 16);
+      const n = REGIONS.length;
+      const cell = Math.min((W - 110) / n, (H - 30) / n);
+      const ox = Math.round((W - n * cell) / 2 + 36), oy = Math.round((H - n * cell) / 2) - 4;
       const mx = Math.max(1, ...coact.flat());
+      x.font = font(10);
+      x.textAlign = "right";
       REGIONS.forEach((g, i) => {
-        x.fillStyle = dim;
-        x.textAlign = "right";
-        x.fillText(g.name.split(" ")[0], ox - 8, oy + i * cell + 17);
+        x.fillStyle = brain.act[g.key] > 0.5 ? C.yellow : C.text;
+        x.fillText(g.name.split(" ")[0], ox - 10, oy + i * cell + cell / 2 + 3);
         for (let j = 0; j < n; j++) {
-          const v = Math.min(1, brain.conn[i][j] * 0.55 + (coact[i][j] / mx) * 0.6);
-          x.fillStyle = i === j ? "#2A2620" : v > 0.8 ? ember : `rgba(79,95,44,${0.1 + v * 0.85})`;
-          x.fillRect(ox + j * cell, oy + i * cell, cell - 3, cell - 3);
+          const v = Math.min(1, brain.conn[i][j] * 0.5 + (coact[i][j] / mx) * 0.7);
+          const cx = ox + j * cell + cell / 2, cy = oy + i * cell + cell / 2;
+          const r = 2 + v * (cell * 0.36);
+          const col = i === j ? C.hi : v > 0.75 ? C.yellow : v > 0.5 ? C.ember : C.budDim + (0.25 + v * 0.75) + ")";
+          if (v > 0.5 || i === j) glow(x, col, 10);
+          x.fillStyle = col;
+          x.beginPath();
+          x.arc(cx, cy, r, 0, 6.283);
+          x.fill();
+          noGlow(x);
         }
       });
-      x.textAlign = "left";
-      x.fillStyle = dim;
-      x.fillText("coupling, live", ox, oy + n * cell + 12);
-      // activity
-      x = a.getContext("2d");
-      x.clearRect(0, 0, a.width, a.height);
-      x.font = font;
-      const W = a.width, H = a.height, mid = H / 2 - 6, bw = (W - 40) / 30;
+      // a slow scan line across the lattice
+      const sy = oy + scan * n * cell;
+      x.strokeStyle = "rgba(245,166,35,0.35)";
+      x.beginPath(); x.moveTo(ox - 4, sy); x.lineTo(ox + n * cell + 4, sy); x.stroke();
+
+      // activity: glowing bars and the mood trace over the last 5 minutes
+      [x, W, H] = fit(a);
+      gridLines(x, W, H, 20);
+      const mid = Math.round(H * 0.5), padL = 30, bw = (W - padL - 8) / 30;
       const nowK = Math.floor(Date.now() / 10000);
       const vals = [];
       for (let i = 29; i >= 0; i--) vals.push(buckets.get(nowK - i) || { b: 0, s: 0 });
       const top = Math.max(4, ...vals.map((v) => Math.max(v.b, v.s)));
-      x.strokeStyle = rule;
-      x.beginPath(); x.moveTo(30, mid); x.lineTo(W, mid); x.stroke();
+      x.strokeStyle = "rgba(237,233,224,0.25)";
+      x.beginPath(); x.moveTo(padL, mid + 0.5); x.lineTo(W, mid + 0.5); x.stroke();
       vals.forEach((v, i) => {
-        const px = 34 + i * bw;
-        x.fillStyle = bud;
-        x.fillRect(px, mid - (v.b / top) * (mid - 12), bw - 3, (v.b / top) * (mid - 12));
-        x.fillStyle = blood;
-        x.fillRect(px, mid + 1, bw - 3, (v.s / top) * (mid - 12));
+        const px = padL + i * bw + 2, w = Math.max(2, bw - 4), hb = (v.b / top) * (mid - 16), hs = (v.s / top) * (mid - 16);
+        if (hb) { glow(x, C.bud, 8); x.fillStyle = C.bud; x.fillRect(px, mid - hb, w, hb); }
+        if (hs) { glow(x, C.blood, 8); x.fillStyle = C.blood; x.fillRect(px, mid + 1, w, hs); }
+        noGlow(x);
       });
-      x.fillStyle = dim;
-      x.fillText(String(top), 0, 16);
-      x.fillText(String(top), 0, H - 16);
-      x.fillText("-5m", 30, H - 2);
-      x.fillText("now", W - 22, H - 2);
+      x.font = font(10);
+      x.textAlign = "left";
+      x.fillStyle = C.text;
+      x.fillText(`+${top}`, 2, 14);
+      x.fillText(`-${top}`, 2, H - 6);
+      x.fillText("-5m", padL, H - 6);
+      x.textAlign = "right";
+      x.fillText("now", W - 2, H - 6);
       if (moods.length > 1) {
-        x.strokeStyle = ember;
-        x.lineWidth = 1.5;
-        x.beginPath();
-        const t0 = now - 300000;
-        moods.forEach((p, i) => {
-          const px = 34 + ((p.t - t0) / 300000) * (W - 40);
-          const py = 10 + p.v * (H - 30);
-          if (px < 30) return;
-          if (i === 0 || px - 34 < 1) x.moveTo(px, py); else x.lineTo(px, py);
-        });
-        x.stroke();
-        x.lineWidth = 1;
+        const tt = now - 300000;
+        const pts = moods.map((p) => [padL + ((p.t - tt) / 300000) * (W - padL - 8), 12 + p.v * (H - 30)]).filter((p) => p[0] >= padL);
+        if (pts.length > 1) {
+          const g = x.createLinearGradient(0, 0, 0, H);
+          g.addColorStop(0, "rgba(232,84,30,0.28)");
+          g.addColorStop(1, "rgba(232,84,30,0)");
+          x.beginPath();
+          x.moveTo(pts[0][0], H);
+          for (const [px, py] of pts) x.lineTo(px, py);
+          x.lineTo(pts.at(-1)[0], H);
+          x.fillStyle = g;
+          x.fill();
+          glow(x, C.ember, 12);
+          x.strokeStyle = C.yellow;
+          x.lineWidth = 1.6;
+          x.beginPath();
+          pts.forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py)));
+          x.stroke();
+          const [lx, ly] = pts.at(-1);
+          x.fillStyle = "#fff";
+          x.beginPath(); x.arc(lx, ly, 3, 0, 6.283); x.fill();
+          noGlow(x);
+          x.lineWidth = 1;
+        }
       }
-      // cell types, summing to the whole brain
-      x = c.getContext("2d");
-      x.clearRect(0, 0, c.width, c.height);
-      x.font = font;
+
+      // cell types: segmented LED bars, the leading type lit in ember
+      [x, W, H] = fit(c);
+      gridLines(x, W, H, 16);
       const pile = Math.max(0, 1 - Math.min(1, S.melt) / 0.8);
-      const w = {
-        GIGGLY: 1 - S.mood,
-        SLEEPY: S.high * 0.8 + 0.1,
-        HUNGRY: 0.9,
-        PARANOID: 0.15 + S.kills.length / 10,
-        FURIOUS: S.mood * S.mood * 1.4,
-        HOARDING: pile * 0.7,
-      };
-      const sum = Object.values(w).reduce((p, q) => p + q, 0);
-      const keys = Object.keys(w);
-      const top2 = Math.max(...Object.values(w));
+      const wts = { GIGGLY: 1 - S.mood, SLEEPY: S.high * 0.8 + 0.1, HUNGRY: 0.9, PARANOID: 0.15 + S.kills.length / 10, FURIOUS: S.mood * S.mood * 1.4, HOARDING: pile * 0.7 };
+      const sum = Object.values(wts).reduce((p, q) => p + q, 0);
+      const keys = Object.keys(wts);
+      const lead = Math.max(...Object.values(wts));
+      const rowH = (H - 16) / keys.length, barX = 86, barW = W - barX - 70, seg = 5, segs = Math.floor(barW / seg);
       keys.forEach((k, i) => {
-        const count = Math.round((w[k] / sum) * TOTAL_NEURONS);
-        const y = 14 + i * 32;
-        x.fillStyle = dim;
+        const y = 10 + i * rowH, lit = Math.round((wts[k] / lead) * segs), isLead = wts[k] === lead;
+        x.font = font(10);
         x.textAlign = "left";
-        x.fillText(k, 0, y + 12);
-        x.fillStyle = w[k] === top2 ? ember : budDark;
-        x.fillRect(80, y, (w[k] / top2) * (c.width - 150), 16);
-        x.fillStyle = ink;
+        x.fillStyle = isLead ? C.yellow : C.text;
+        x.fillText(k, 0, y + rowH / 2 + 3);
+        for (let sgi = 0; sgi < segs; sgi++) {
+          const on = sgi < lit;
+          x.fillStyle = on ? (isLead ? C.ember : C.bud) : "rgba(237,233,224,0.06)";
+          if (on && sgi === lit - 1) glow(x, isLead ? C.yellow : C.bud, 10);
+          x.fillRect(barX + sgi * seg, y + rowH * 0.25, seg - 2, rowH * 0.5);
+          noGlow(x);
+        }
         x.textAlign = "right";
-        x.fillText(count.toLocaleString("en-US"), c.width, y + 12);
+        x.font = font(11, 500);
+        x.fillStyle = isLead ? C.hi : C.text;
+        x.fillText(Math.round((wts[k] / sum) * TOTAL_NEURONS).toLocaleString("en-US"), W, y + rowH / 2 + 4);
       });
     },
   };
