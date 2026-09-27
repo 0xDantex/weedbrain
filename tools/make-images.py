@@ -38,7 +38,27 @@ def terminal(out, cmd, text):
     for i, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
         d.ellipse((28 + i * 28, 24, 44 + i * 28, 40), fill=c)
     y = 70
+    heat = {c: i for i, c in enumerate(" .:-=+*#%@")}
     for l in lines:
+        if l.startswith("    ") and set(l.strip()) <= set(heat) and l.strip():
+            # a scan plate: each glyph coloured by its density, green to ember
+            x = 40
+            for ch in l:
+                k = heat.get(ch, 0) / 9
+                col = tuple(int(a + (b - a) * k) for a, b in zip((126, 148, 69), (245, 120, 40)))
+                d.text((x, y), ch, font=f, fill=col)
+                x += f.getlength(ch)
+            y += lh
+            continue
+        if "█" in l:
+            head, rest = l[:18], l[18:]
+            d.text((40, y), head, font=f, fill=INK)
+            x = 40 + f.getlength(head)
+            for ch in rest:
+                d.text((x, y), ch, font=f, fill=ORANGE if ch == "█" else DIM)
+                x += f.getlength(ch)
+            y += lh
+            continue
         col = INK
         if l.startswith("$"):
             col = ORANGE
@@ -47,6 +67,10 @@ def terminal(out, cmd, text):
         elif "BUY" in l[:16]:
             col = GREEN
         elif l.startswith("  [") or l.startswith("          "):
+            col = DIM
+        elif l.startswith("DIAGNOSIS") or l.startswith("WEEDBRAIN NEUROSCAN"):
+            col = ORANGE
+        elif l.startswith("REGION") or l.startswith("chain "):
             col = DIM
         if "HASH" in l or "hash" in l.split("  ")[-1:][0]:
             pass

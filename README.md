@@ -6,7 +6,7 @@ A giant joint with a burning head lies in a pile of buds and smokes a smaller jo
 Buys throw him joints, sells send buzzkills to put them out, the pile melts with the drawdown and one big sell knocks his mug over.
 Everything he does is computed from the trades of one Pons v2 token on Robinhood Chain and anyone can recompute it.
 
-![The live scene at SHADES OFF: a full pile, joints burning, buzzkills wading in](docs/img/shades.png)
+![The live scene: every trade pops a card over his face, sells in red](docs/img/scene.png)
 
 ## Why a joint
 
@@ -16,13 +16,15 @@ The burning tip on his head is the tell. Calm, it glows. Angry, it flares. It is
 
 The story has a hinge. At first he is flat out in the pile with his shades on, then heavy-eyed, then reaching for his mug. A big sell knocks the mug over and pours it all over him and from there he is angry about something real: soaked, fists, the suit, the gun at the camera, firing and at the very bottom the whole frame blows apart. He does not die. The next buys bring him back and a fresh mug with them.
 
-![A big sell knocks the mug over: SPILLED](docs/img/spilled.png)
+![The neuroscan: his brain read off the last 30 minutes of trades](docs/img/scan.png)
+
+`node tools/scan.js` scans the joint's brain from the chain: every buy lights the CB1 LOBE, every sell the EMBER NUCLEUS, every buzzkill the PARANOIA TRACT, every spill the MUG CORTEX. The anatomy is invented; the readings are counted from real trades.
 
 ## The site
 
 The site is built like a lab instrument, not a crypto landing page: paper background, thin rules, one accent (the ember orange), monospaced tabular numbers everywhere, headings small and rare.
 
-![The first screen: the contract bar and the live specimen](docs/img/site-hero.png)
+![The first screen: the contract and the live specimen](docs/img/site-hero.png)
 
 - **The first screen** is the live specimen. Above it only a short title and, under it, the contract in large type in an ember frame, a copy button and the buy button, which stays inactive until `ca` is set. The header with the buy button stays on top while scrolling.
 - **The counters** under the scene: holders, trades in 24 h, market cap in ETH, the stage, the time in it, the last update and the block.
@@ -30,9 +32,9 @@ The site is built like a lab instrument, not a crypto landing page: paper backgr
 - **The brain of a joint** is a made-up anatomy plate: a point cloud of about 58,000 neurons packed into bud-shaped lumps, with thin shells where the lobes end, drawn with three.js and turning slowly (drag to rotate). Six regions answer to the chain: a buy lights the CB1 LOBE, a sell heats the EMBER NUCLEUS, a buzzkill wakes the PARANOIA TRACT, a spill jolts the MUG CORTEX, the pile sets the BUD GANGLION and the MUNCHIE NERVE never stops. Hovering a region or its label dims the rest and opens a card. Under it three dark instrument panels in the same glow as the brain: a coupling lattice, the buys and sells of the last 5 minutes with the mood trace and LED bars of cell types, all moving with the trades. It says it is a joke under the plate, because it is.
 - **The rest:** the three rules, the ten states (hover plays the clip, the current one is outlined), what this is not, the footer.
 
-![The live specimen](docs/img/site-live.png)
+![The brain of a joint: a point cloud of neurons that flash with the chain](docs/img/brain.png)
 
-![The brain of a joint, the CB1 LOBE hovered](docs/img/site-brain.png)
+![The instrument panels under it](docs/img/panels.png)
 
 Holders are counted by replaying the token's `Transfer` events from its launch block in the browser, because the Blockscout API answers this network with a Cloudflare challenge and the Pons API allows 8 calls a minute. The curve, the pool manager and the zero address are not holders. The market cap is the last trade price times the total supply, in ETH. `weedbrain.html` is the live specimen alone, for a second screen or a stream.
 
@@ -76,15 +78,13 @@ Frames 31-35 do not exist in the art set. Stage 7 starts at frame 36.
 
 Every trade moves him right away: the smallest one stage, the biggest three, buys up the ladder and sells down it. On the 48 hours of HYDX since launch 91.3% of trades moved his mood; the rest hit him at the top or the bottom of the ladder, at a fresh mug or were dust. The mug splits the ladder: the sell that takes him past THE MUG knocks it over and SPILLED plays first and the buy that brings him back above SPILLED brings a fresh one.
 
-![The bottom: BLAST, the pile gone](docs/img/blast.png)
-
 ## The key property
 
 The state is a pure function of three things: the genesis seed, the ordered trade log and the step number. There is no `Math.random` and no clock inside the simulation and it does not care about frame rate. The live page prints a hash of the state in the corner. Two screens on the same step print the same line.
 
-![Desktop at a pixel ratio of 2 and a phone on the same step show the same hash](docs/img/hash.png)
+![A desktop window and a phone on the same step show the same hash](docs/img/hash.png)
 
-Above: a 1280 px window at a device pixel ratio of 2 and a 390 px phone viewport on the same demo step both show `c71f8300 @19004`. On the phone the scene is cropped to its middle square; the state is the same.
+Above: a 1280 px window and a 390 px phone viewport on the same demo step both show `9346f2c5 @5046`. On the phone the scene is cropped to its middle square; the state is the same.
 
 ## Quick start
 
@@ -114,13 +114,12 @@ node tools/watch.js 0xTOKEN              watch a token in the terminal
 node tools/replay.js --token 0xTOKEN     replay its history and print the state
 npm run serve -- --token 0xTOKEN         serve the site on that token
 node tools/find-active.js                list the busiest tokens right now and their stage
+node tools/scan.js                       scan his brain from the last 30 minutes of trades
 ```
 
 For a token that has been trading for a while, `--lookback 60` starts the watch an hour back (rounded down to an hour grid of 36,000 blocks, so viewers in the same hour share a genesis). For my own token the genesis is its launch block.
 
 ![watch.js on a live token](docs/img/watch.png)
-
-![The live page on the same token](docs/img/live.png)
 
 ## Log format
 
@@ -141,17 +140,17 @@ In collector mode a client does not replay from genesis. It reads `data/state.js
 ## Verify
 
 ```
-$ node tools/replay.js --token 0xa6f1951bc0b13893756f7ae51a4956f97d485081 --lookback 60
+$ node tools/replay.js
 ```
 
 ![replay.js prints the state hash](docs/img/replay.png)
 
 The hash `replay.js` prints for a step must be the one the page shows for that step. I checked it four ways on the current engine:
 
-- the live page against replay, direct mode on GME: the page showed `2e3f1698 @10632`, `replay.js --token ... --lookback 60 --to 10632` printed `2e3f1698`
+- the live page against replay, direct mode on POTATCHI from its launch: the page showed `68b917f0 @216589`, `replay.js --to 216589` printed `68b917f0`
 - the collector against replay: the collector wrote `e7b273bb @12268` into `meta.json`, `replay.js --log data/events --to 12268` printed `e7b273bb`
 - the page in SYNC mode against replay: the page showed `7a42cddc @12384`, `replay.js` at step 12384 printed `7a42cddc`
-- two viewports on the demo: `c71f8300 @19004` on both, one of them at a device pixel ratio of 2
+- two viewports on the demo: `9346f2c5 @5046` on both
 
 ## Tests
 
