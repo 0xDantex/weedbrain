@@ -580,7 +580,7 @@ async function boot() {
     c.height = budsImg.height;
     const x = c.getContext("2d");
     x.drawImage(budsImg, 0, 0);
-    renderer = new Renderer($("art"), $("scene"), frames, x.getImageData(0, 0, c.width, c.height), { reducedMotion: reduced, bg: $("bg") });
+    renderer = new Renderer($("art"), $("scene"), frames, x.getImageData(0, 0, c.width, c.height), { reducedMotion: reduced });
     renderer.syncEntities(live.S);
   }
   at = atlas(budsImg);

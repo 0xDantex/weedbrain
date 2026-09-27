@@ -291,39 +291,17 @@ export class Renderer {
     if (fnum !== this.shownFrame) {
       const img = this.frames.get(fnum);
       if (img && img.complete && img.naturalWidth) {
-        // the picture at its own proportions in the middle of a paper-white
-        // scene; its edges fade out and the bud mounds fill the sides
-        const w = (img.naturalWidth * FH) / img.naturalHeight;
-        this.actx.clearRect(0, 0, RW, RH);
-        this.actx.drawImage(img, (RW - w) / 2, RH - FH, w, FH);
-        this.picW = w;
+        // the frame is the whole scene, nothing is painted behind it
+        this.actx.drawImage(img, 0, 0, RW, RH);
         this.shownFrame = fnum;
       }
     }
-    if (this.bgx) this.background(S, tm, dt, motion);
     const tArt = performance.now();
 
-    // the pile: the melt is the drawdown, a bare floor at MELT_BARE
-    const level = Math.max(0, 1 - Math.min(1, S.melt) / MELT_BARE);
-    this.buildPile(level);
+    // nothing else is drawn into the scene: the frame carries the pile
     const buf = this.buf;
-    buf.set(this.pile);
+    buf.fill(0);
     const tPile = performance.now();
-
-    // joints lying in the pile, longest in front
-    const joints = [...S.joints].sort((a, b) => a.len - b.len || a.id - b.id);
-    joints.forEach((j, i) => {
-      let v = this.jv.get(j.id);
-      if (!v) { v = { drop: 1, slot: (j.id * 0.618) % 1 }; this.jv.set(j.id, v); }
-      v.drop = Math.min(1, v.drop + dt * 2);
-      const len = Math.round(32 + Math.min(110, j.len * 32));
-      const x0 = Math.round(CX - 330 + v.slot * 560);
-      const rest = Math.min(RH - 18, this.surface(x0 + len / 2) + 10 + (i % 3) * 8);
-      const e = 1 - (1 - v.drop) * (1 - v.drop);
-      const y = Math.round(-40 + (rest + 40) * e);
-      this.joint(x0, y, len, tm, j.id);
-      if (motion && Math.random() < 0.3) this.parts.push({ x: x0 + len + 4, y: y - 2, vx: (Math.random() - 0.5) * 0.4, vy: -0.6 - Math.random() * 0.5, g: 0, life: 80, max: 80, c: 0xc9c6bf, r: 3, smoke: true });
-    });
 
     // buzzkills live in the sim and the trade cards, not on the scene
     for (let i = this.fx.length - 1; i >= 0; i--) {
