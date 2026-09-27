@@ -202,13 +202,14 @@ a.trow:hover { background: var(--paper); }
 
 /* ---------- toasts ---------- */
 .toasts { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(300px, 70%); pointer-events: none; }
-.toast { width: 100%; box-shadow: 0 6px 24px rgba(28, 26, 23, 0.25); background: var(--panel); border: 1px solid var(--ember); border-left-width: 4px; border-radius: 4px; padding: 10px 12px; font: var(--s1) var(--mono); transition: transform 0.35s, opacity 0.35s; animation: tin 0.3s ease-out; }
-.toast.is-sell { border-color: var(--blood); }
+.toast { width: 100%; box-shadow: 0 6px 24px rgba(28, 26, 23, 0.18); background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); border: 1px solid; border-left-width: 4px; border-radius: 4px; padding: 10px 12px; font: var(--s1) var(--mono); transition: transform 0.35s, opacity 0.35s; animation: tin 0.3s ease-out; }
+.toast.is-buy { border-color: #2f8a2a; background: rgba(233, 247, 226, 0.6); }
+.toast.is-sell { border-color: #c8322a; background: rgba(252, 232, 229, 0.6); }
 .toast .amt { font-size: var(--s4); font-weight: 600; display: block; line-height: 1.1; }
-.toast.is-buy .amt { color: var(--ember); }
-.toast.is-sell .amt { color: var(--blood); }
+.toast.is-buy .amt { color: #2f8a2a; }
+.toast.is-sell .amt { color: #c8322a; }
 .toast .what { letter-spacing: 0.12em; text-transform: uppercase; }
-.toast .who { color: var(--dim); float: right; }
+.toast .who { color: #4a443a; float: right; }
 .toast.out { transform: translateY(-14px); opacity: 0; }
 @keyframes tin { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 .bigtoast { position: fixed; left: 0; right: 0; top: var(--top-h); z-index: 29; background: var(--blood); color: #fff; text-align: center; padding: 16px; animation: tin 0.3s ease-out; }
