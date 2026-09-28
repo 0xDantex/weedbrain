@@ -1,13 +1,13 @@
 {
   "name": "WEEDBRAIN",
-  "ticker": "POTATCHI",
-  "ca": "0xfad17d7cc41d9c9ca4a459da798a4446dd217974",
+  "ticker": "RBD",
+  "ca": "0xb41c7ac9d46a980f8bdf1894b392a2a07ec9992a",
   "mode": "direct",
-  "token": "0xfad17d7cc41d9c9ca4a459da798a4446dd217974",
+  "token": "0xb41c7ac9d46a980f8bdf1894b392a2a07ec9992a",
   "genesisBlock": 0,
-  "lookbackMin": 0,
+  "lookbackMin": 60,
   "pollMs": 1500,
-  "buyUrl": "https://www.ponsfamily.com/launchpad/0xfad17d7cc41d9c9ca4a459da798a4446dd217974",
+  "buyUrl": "https://www.ponsfamily.com/launchpad/0xb41c7ac9d46a980f8bdf1894b392a2a07ec9992a",
   "x": "https://x.com/0xdantex",
   "github": "https://github.com/0xDantex/weedbrain",
   "dataUrl": "/data/"
