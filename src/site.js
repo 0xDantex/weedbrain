@@ -107,7 +107,7 @@ function buildReel() {
   if (!reel) return () => {};
   reel.innerHTML = STAGES.map((s, i) => {
     const still = `frames/${pad2(CLIPS[i].frames[Math.floor(CLIPS[i].frames.length / 2)])}.webp`;
-    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
+    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp?v=2" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
   }).join("");
   if (!reduced) {
     reel.querySelectorAll("figure").forEach((f) => {
