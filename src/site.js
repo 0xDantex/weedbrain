@@ -514,7 +514,7 @@ async function boot() {
       if (S.stage !== shownStage) {
         shownStage = S.stage;
         stageSince = Date.now();
-        if (heroClip) heroClip.src = reduced ? `frames/${pad2(CLIPS[S.stage].frames[0])}.webp` : `clips/${SLUGS[S.stage]}-clean.webp`;
+        if (heroClip) heroClip.src = reduced ? `frames/${pad2(CLIPS[S.stage].frames[0])}.webp` : `clips/${SLUGS[S.stage]}-clean.webp?v=2`;
         scale(S.stage);
         reel(S.stage);
       }
