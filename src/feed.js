@@ -20,13 +20,18 @@ export const SAFE_MARGIN = 5;
 
 export const stepOfBlock = (blk, genesisBlk) => (blk - genesisBlk) * SIM.STEPS_PER_BLOCK;
 
-export function tradeToEvent(t, genesisBlk) {
+/**
+ * rate turns the quote amount into ETH for tokens paired with something
+ * else (a stock token, a stablecoin). It is a fixed number from the config,
+ * not a live price, so the log and the hash stay reproducible.
+ */
+export function tradeToEvent(t, genesisBlk, rate = 1) {
   return {
     step: stepOfBlock(t.blk, genesisBlk),
     side: t.side,
-    eth: t.quote,
+    eth: t.quote * rate,
     tok: t.tok,
-    px: t.px,
+    px: t.px * rate,
     blk: t.blk,
     li: t.li,
     tx: t.tx,
@@ -116,6 +121,7 @@ export class DirectFeed {
     this.error = null;
     this.polls = 0;
     this.pollMs = cfg.pollMs || 1500;
+    this.rate = Number(cfg.quoteToEth) > 0 ? Number(cfg.quoteToEth) : 1;
   }
 
   async init(onProgress = () => {}) {
@@ -129,7 +135,7 @@ export class DirectFeed {
       pool: true,
       onProgress: (p) => onProgress("history", p),
     });
-    mergeEvents(this.events, this.seen, trades.map((t) => tradeToEvent(t, this.genesisBlk)));
+    mergeEvents(this.events, this.seen, trades.map((t) => tradeToEvent(t, this.genesisBlk, this.rate)));
     this.headBlk = head;
     this.headAt = Date.now();
     this.safeBlk = head;
@@ -155,7 +161,7 @@ export class DirectFeed {
         });
         if (this.meta.graduated) this.curveDone = this.curveDone || this.curveSeenGraduated;
         this.curveSeenGraduated = this.meta.graduated;
-        fresh = trades.map((t) => tradeToEvent(t, this.genesisBlk));
+        fresh = trades.map((t) => tradeToEvent(t, this.genesisBlk, this.rate));
         mergeEvents(this.events, this.seen, fresh);
         this.safeBlk = head;
       }

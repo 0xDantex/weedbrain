@@ -10,6 +10,7 @@
 | `ca` | the token's contract address. Empty until launch: the landing page then says "not launched yet" and hides every buy link |
 | `token` | the token the scene watches. At launch, the same address as `ca` |
 | `mode` | `direct` or `collector`. An empty `token` is demo whatever this says |
+| `quoteToEth` | for a token paired with something other than ETH (a stock token such as AMZN, a stablecoin): how much ETH one unit of the pair is worth. A fixed number, so the log and the hash stay reproducible. 1 for ETH pairs |
 | `genesisBlock` | leave 0: the launch block is found on chain |
 | `lookbackMin` | 0 for your own token. Only for watching a foreign token that has traded for a long time |
 | `buyUrl` | `{token}` is replaced with the address |
@@ -27,7 +28,7 @@ tools/deploy.sh
 
 It copies `src/` to a temporary folder and deploys that to the Vercel project linked in `.vercel/project.json`. Deploying the repository folder directly was blocked by Vercel because the commit author is not a member of the Vercel team. `vercel.json` marks the config as `no-cache`, so a config change shows up on the next page load.
 
-Live now: https://weedbrain.vercel.app, watching RobinDog (0xb41c7ac9d46a980f8bdf1894b392a2a07ec9992a), the last hour.
+Live now: https://weedbrain.vercel.app, watching COON (0x27a0d77264b4bb4bc46f435c63b1f8068cc833d3, paired with AMZN) from its launch.
 
 ## Collector mode
 
