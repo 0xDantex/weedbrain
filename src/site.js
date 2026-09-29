@@ -106,8 +106,8 @@ function buildReel() {
   const reel = $("reel");
   if (!reel) return () => {};
   reel.innerHTML = STAGES.map((s, i) => {
-    const still = `frames/${pad2(CLIPS[i].frames[Math.floor(CLIPS[i].frames.length / 2)])}.webp`;
-    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp?v=2" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
+    const still = `frames/${pad2(CLIPS[i].frames[Math.floor(CLIPS[i].frames.length / 2)])}.webp?v=3`;
+    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp?v=3" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
   }).join("");
   if (!reduced) {
     reel.querySelectorAll("figure").forEach((f) => {
@@ -461,7 +461,7 @@ async function boot() {
   const toast = $("toasts") ? toaster() : null;
 
   screen("load", "LOADING", "reading the frames", 0);
-  const framesP = Promise.all(FRAME_NUMBERS.map((n) => loadImage(`frames/${pad2(n)}.webp`).then((img) => [n, img]))).then((l) => new Map(l));
+  const framesP = Promise.all(FRAME_NUMBERS.map((n) => loadImage(`frames/${pad2(n)}.webp?v=3`).then((img) => [n, img]))).then((l) => new Map(l));
   const budsImgP = loadImage("frames/buds.webp");
 
   let renderer, at, pan, stats;
@@ -514,7 +514,7 @@ async function boot() {
       if (S.stage !== shownStage) {
         shownStage = S.stage;
         stageSince = Date.now();
-        if (heroClip) heroClip.src = reduced ? `frames/${pad2(CLIPS[S.stage].frames[0])}.webp` : `clips/${SLUGS[S.stage]}-clean.webp?v=2`;
+        if (heroClip) heroClip.src = reduced ? `frames/${pad2(CLIPS[S.stage].frames[0])}.webp` : `clips/${SLUGS[S.stage]}-clean.webp?v=3`;
         scale(S.stage);
         reel(S.stage);
       }

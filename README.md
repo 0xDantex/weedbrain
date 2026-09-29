@@ -172,7 +172,7 @@ The real trade fixtures in `test/fixtures` were captured with `tools/capture-fix
 
 ## The art
 
-The 45 source frames are 1400 x 1400 (`art/frames`). They were cut out of a sheet and come in two shapes: three of every five are a 1280 x ~1370 picture with white margins, a border line and a sliver of the next panel under it and the other two are the same picture squashed into 1400 x 1017. `tools/make-frames.py` finds the picture inside each frame and keeps its own proportions at 720 px tall; the two shapes are two framings, not one picture squashed. Each scene frame is then built as one whole 1280 x 720 picture: the paper white of the art above and its bud pile carried on to both sides at the height the pile meets each edge, from a texture cut out of the frames themselves. The renderer draws that frame and nothing behind it, so the scene reads as one drawing.
+The 45 source frames (`art/frames`) are whole 16:9 pixel-art scenes, 1672 x 941: the joint on his couch in the bud pile, a lamp, a framed leaf on the wall. `tools/make-frames.py` only scales them to the scene's 1280 x 720; nothing is drawn around them.
 
 `tools/make-clips.py` builds the ten clips from those frames in three variants each, with the stage name and level bar, clean for the site and 1280 x 720 for posts, as webp and gif.
 
