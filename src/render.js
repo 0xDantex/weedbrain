@@ -22,20 +22,21 @@ const SCALE = 5; // buzzkill pixel scale
 const TEX_H = 260;
 
 // frames of each stage's clip and how the clip plays
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 export const CLIPS = [
-  { frames: [1, 2, 3, 4, 5], play: "pingpong" },
-  { frames: [6, 7, 8, 9, 10], play: "pingpong" },
-  { frames: [11, 12, 13, 14, 15], play: "pingpong" },
-  { frames: [16, 17, 18, 19, 20], play: "once" }, // the spill only goes one way
-  { frames: [21, 22, 23, 24, 25], play: "pingpong" },
-  { frames: [26, 27, 28, 29, 30], play: "pingpong" },
-  { frames: [36, 37, 38, 39, 40], play: "pingpong" },
-  { frames: [41, 42, 43, 44, 45], play: "pingpong" },
-  { frames: [46, 47, 48], play: "loop" },
-  { frames: [48, 49, 50], play: "loop" },
+  { frames: range(1, 9), play: "pingpong" },
+  { frames: range(10, 19), play: "pingpong" },
+  { frames: range(20, 29), play: "pingpong" },
+  { frames: range(30, 39), play: "once" }, // the spill only goes one way
+  { frames: range(40, 49), play: "pingpong" },
+  { frames: range(50, 60), play: "pingpong" },
+  { frames: range(61, 70), play: "pingpong" },
+  { frames: range(71, 80), play: "pingpong" },
+  { frames: range(81, 86), play: "loop" },
+  { frames: range(86, 90), play: "loop" },
 ];
 export const FRAME_NUMBERS = [...new Set(CLIPS.flatMap((c) => c.frames))];
-const STEP = 110; // ms per frame, with a longer hold at both ends like the clips
+const STEP = 60; // ms per frame (90 frames, twice the old count), with a longer hold at both ends
 const HOLD = 260;
 
 const abgr = (rgb, a = 255) => ((a << 24) | ((rgb & 0xff) << 16) | (rgb & 0xff00) | ((rgb >>> 16) & 0xff)) >>> 0;
@@ -48,7 +49,7 @@ export function clipFrame(clip, t, reduced) {
   if (clip.play === "once") {
     const i = Math.floor(t / STEP);
     // after the spill, rock between the last two frames
-    return i < f.length ? f[i] : f[f.length - 2 + (Math.floor(t / (STEP * 3)) % 2)];
+    return i < f.length ? f[i] : f[f.length - 2 + (Math.floor(t / (STEP * 5)) % 2)];
   }
   if (clip.play === "loop") return f[Math.floor(t / STEP) % f.length];
   // forward and back, holding the ends
@@ -287,7 +288,9 @@ export class Renderer {
       this.stage = S.stage;
       this.stageAt = now;
     }
-    const fnum = clipFrame(CLIPS[S.stage], now - this.stageAt, this.reduced);
+    let fnum = clipFrame(CLIPS[S.stage], now - this.stageAt, this.reduced);
+    const ready = (n) => { const im = this.frames.get(n); return im && im.complete && im.naturalWidth; };
+    if (!ready(fnum)) fnum = CLIPS[S.stage].frames.find(ready) || this.shownFrame;
     if (fnum !== this.shownFrame) {
       const img = this.frames.get(fnum);
       if (img && img.complete && img.naturalWidth) {

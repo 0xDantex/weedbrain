@@ -118,7 +118,7 @@ export function makeRpc(url = CHAIN.rpc, { logsSpacingMs = 150, retries = 6, max
       if (json.error) {
         const msg = String(json.error.message || "");
         // a range too heavy for the node comes back as a refusal or as a timeout
-        if (/exceeds limit|Missing or invalid parameters|query returned more than|timed out|timeout|deadline/i.test(msg)) {
+        if (/exceeds limit|Missing or invalid parameters|query returned more than|timed out|timeout|deadline|narrow the block range|are allowed for this request/i.test(msg)) {
           throw new ChainError("too-many", msg);
         }
         if (json.error.code === 429 && attempt < retries) {
@@ -331,7 +331,8 @@ export function tradeOrder(a, b) {
   return a.blk - b.blk || a.li - b.li || (a.tx < b.tx ? -1 : a.tx > b.tx ? 1 : 0);
 }
 
-const MAX_CHUNK = 900_000;
+// the public node allows at most 100,000 blocks per log query (since 2026-09-30)
+const MAX_CHUNK = 100_000;
 const MIN_CHUNK = 200;
 
 /**

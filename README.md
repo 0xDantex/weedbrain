@@ -63,18 +63,16 @@ The trader is read from the event fields (the recipient of a buy, the seller of 
 
 | # | stage | frames | what he does |
 |---|---|---|---|
-| 1 | SHADES OFF | 1-5 | flat out in the pile, takes the shades off |
-| 2 | EYES HEAVY | 6-10 | smoking, going nowhere |
-| 3 | THE MUG | 11-15 | reaches for his mug and drinks |
-| 4 | SPILLED | 16-20 | the mug tips and goes all over him |
-| 5 | SOAKED | 21-25 | no drink, no patience |
-| 6 | FISTS | 26-30 | teeth grinding, first tremors |
-| 7 | SUIT ON | 36-40 | cold and done talking |
-| 8 | AIMING | 41-45 | the gun at the camera |
-| 9 | FIRING | 46-48 | muzzle flash, shells |
-| 10 | BLAST | 48-50 | the whole frame goes |
-
-Frames 31-35 do not exist in the art set. Stage 7 starts at frame 36.
+| 1 | SHADES OFF | 1-9 | flat out in the pile, takes the shades off |
+| 2 | EYES HEAVY | 10-19 | smoking, going nowhere |
+| 3 | THE MUG | 20-29 | reaches for his mug and drinks |
+| 4 | SPILLED | 30-39 | the mug tips and goes all over him |
+| 5 | SOAKED | 40-49 | no drink, no patience |
+| 6 | FISTS | 50-60 | teeth grinding, first tremors |
+| 7 | SUIT ON | 61-70 | cold and done talking |
+| 8 | AIMING | 71-80 | the gun at the camera |
+| 9 | FIRING | 81-86 | muzzle flash, shells |
+| 10 | BLAST | 86-90 | the whole frame goes |
 
 Every trade moves him right away: the smallest one stage, the biggest three, buys up the ladder and sells down it. On the 48 hours of HYDX since launch 91.3% of trades moved his mood; the rest hit him at the top or the bottom of the ladder, at a fresh mug or were dust. The mug splits the ladder: the sell that takes him past THE MUG knocks it over and SPILLED plays first and the buy that brings him back above SPILLED brings a fresh one.
 
@@ -172,7 +170,7 @@ The real trade fixtures in `test/fixtures` were captured with `tools/capture-fix
 
 ## The art
 
-The 45 source frames (`art/frames`) are whole 16:9 pixel-art scenes, 1672 x 941: the joint on his couch in the bud pile, a lamp, a framed leaf on the wall. `tools/make-frames.py` only scales them to the scene's 1280 x 720; nothing is drawn around them.
+The 90 source frames (`art/frames`) are whole 16:9 pixel-art scenes, 1672 x 941, nine or ten to a stage: the joint on his couch in the bud pile, a lamp, a framed leaf on the wall. `tools/make-frames.py` only scales them to the scene's 1280 x 720; nothing is drawn around them.
 
 `tools/make-clips.py` builds the ten clips from those frames in three variants each, with the stage name and level bar, clean for the site and 1280 x 720 for posts, as webp and gif.
 

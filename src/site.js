@@ -11,6 +11,7 @@ const $ = (id) => document.getElementById(id);
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SLUGS = ["01-shades", "02-heavy", "03-mug", "04-spill", "05-soaked", "06-fists", "07-suit", "08-aiming", "09-firing", "10-blast"];
 const pad2 = (n) => String(n).padStart(2, "0");
+const pad3 = (n) => String(n).padStart(3, "0");
 const set = (id, v) => { const e = $(id); if (e && e.textContent !== v) e.textContent = v; };
 
 function fmtTok(n) {
@@ -106,8 +107,8 @@ function buildReel() {
   const reel = $("reel");
   if (!reel) return () => {};
   reel.innerHTML = STAGES.map((s, i) => {
-    const still = `frames/${pad2(CLIPS[i].frames[Math.floor(CLIPS[i].frames.length / 2)])}.webp?v=3`;
-    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp?v=3" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
+    const still = `frames/${pad3(CLIPS[i].frames[Math.floor(CLIPS[i].frames.length / 2)])}.webp?v=4`;
+    return `<figure data-i="${i}"><img src="${still}" data-still="${still}" data-clip="clips/${SLUGS[i]}-clean.webp?v=4" alt="" loading="lazy" width="672" height="720"><figcaption class="mono"><b>${pad2(i + 1)} ${s}</b>${STAGE_NOTES[i]}</figcaption></figure>`;
   }).join("");
   if (!reduced) {
     reel.querySelectorAll("figure").forEach((f) => {
@@ -461,7 +462,15 @@ async function boot() {
   const toast = $("toasts") ? toaster() : null;
 
   screen("load", "LOADING", "reading the frames", 0);
-  const framesP = Promise.all(FRAME_NUMBERS.map((n) => loadImage(`frames/${pad2(n)}.webp?v=3`).then((img) => [n, img]))).then((l) => new Map(l));
+  // every frame starts loading now; the renderer draws a frame once it has
+  // arrived, so the scene does not wait for all 90
+  const frames = new Map(FRAME_NUMBERS.map((n) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = `frames/${pad3(n)}.webp?v=4`;
+    return [n, img];
+  }));
+  const firstFrame = new Promise((res) => { const f = frames.get(FRAME_NUMBERS[0]); f.onload = res; f.onerror = res; });
   const budsImgP = loadImage("frames/buds.webp");
 
   let renderer, at, pan, stats;
@@ -514,7 +523,7 @@ async function boot() {
       if (S.stage !== shownStage) {
         shownStage = S.stage;
         stageSince = Date.now();
-        if (heroClip) heroClip.src = reduced ? `frames/${pad2(CLIPS[S.stage].frames[0])}.webp` : `clips/${SLUGS[S.stage]}-clean.webp?v=3`;
+        if (heroClip) heroClip.src = reduced ? `frames/${pad3(CLIPS[S.stage].frames[0])}.webp?v=4` : `clips/${SLUGS[S.stage]}-clean.webp?v=4`;
         scale(S.stage);
         reel(S.stage);
       }
@@ -573,7 +582,7 @@ async function boot() {
 
   const ok = await live.start();
   if (!ok) return;
-  const [frames, budsImg] = await Promise.all([framesP, budsImgP]);
+  const [, budsImg] = await Promise.all([firstFrame, budsImgP]);
   if ($("scene")) {
     const c = document.createElement("canvas");
     c.width = budsImg.width;

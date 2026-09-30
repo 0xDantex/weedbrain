@@ -18,16 +18,16 @@ FONTS = ROOT / "art/fonts"
 
 # (first frame, last frame, slug, name, caption, level)
 CLIPS = [
-    (1, 5, "01-shades", "SHADES OFF", "flat out in the pile", 1.00),
-    (6, 10, "02-heavy", "EYES HEAVY", "smoking, going nowhere", 0.88),
-    (11, 15, "03-mug", "THE MUG", "reaching for a drink", 0.76),
-    (16, 20, "04-spill", "SPILLED", "it goes all over him", 0.62),
-    (21, 25, "05-soaked", "SOAKED", "no drink, no patience", 0.48),
-    (26, 30, "06-fists", "FISTS", "teeth grinding, first tremors", 0.34),
-    (36, 40, "07-suit", "SUIT ON", "cold and done talking", 0.22),
-    (41, 45, "08-aiming", "AIMING", "steadies it at the camera", 0.10),
-    (46, 48, "09-firing", "FIRING", "muzzle flash, shells", 0.03),
-    (48, 50, "10-blast", "BLAST", "the whole frame goes", 0.00),
+    (1, 9, "01-shades", "SHADES OFF", "flat out in the pile", 1.00),
+    (10, 19, "02-heavy", "EYES HEAVY", "smoking, going nowhere", 0.88),
+    (20, 29, "03-mug", "THE MUG", "reaching for a drink", 0.76),
+    (30, 39, "04-spill", "SPILLED", "it goes all over him", 0.62),
+    (40, 49, "05-soaked", "SOAKED", "no drink, no patience", 0.48),
+    (50, 60, "06-fists", "FISTS", "teeth grinding, first tremors", 0.34),
+    (61, 70, "07-suit", "SUIT ON", "cold and done talking", 0.22),
+    (71, 80, "08-aiming", "AIMING", "steadies it at the camera", 0.10),
+    (81, 86, "09-firing", "FIRING", "muzzle flash, shells", 0.03),
+    (86, 90, "10-blast", "BLAST", "the whole frame goes", 0.00),
 ]
 
 
@@ -42,7 +42,7 @@ def mono(s):
 
 
 def canvas(n, w, h):
-    art = Image.open(FR / f"{n:02d}.webp").convert("RGB")
+    art = Image.open(FR / f"{n:03d}.webp").convert("RGB")
     # frames are the whole 1280 x 720 scene; a square clip is its middle
     out = art.crop(((art.width - w) // 2, 0, (art.width + w) // 2, h))
     return out
@@ -77,7 +77,7 @@ def main():
     for a, b, slug, name, sub, lvl in CLIPS:
         idx = list(range(a, b + 1))
         seq = idx + idx[-2:0:-1]
-        durs = [110] * len(seq)
+        durs = [60] * len(seq)
         durs[0] = 260
         durs[len(idx) - 1] = 260
         for suffix, w, h, text in (("", 720, 720, True), ("-clean", 720, 720, False), ("-wide", 1280, 720, False)):
@@ -99,7 +99,7 @@ def sheet():
     for n, (a, b, slug, name, sub, lvl) in enumerate(CLIPS):
         cx, cy = 10 + (n % cols) * (sw + 10), 44 + (n // cols) * (sh + 62)
         mid = list(range(a, b + 1))[(b - a + 1) // 2]
-        fr = Image.open(FR / f"{mid:02d}.webp").convert("RGB")
+        fr = Image.open(FR / f"{mid:03d}.webp").convert("RGB")
         fr = fr.crop((280, 0, 1000, 720)).resize((sw, sh), Image.LANCZOS)
         im.paste(fr, (cx, cy))
         d.rectangle([cx, cy + sh, cx + sw, cy + sh + 4], fill=(40, 34, 40))

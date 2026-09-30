@@ -75,7 +75,7 @@ export class Stats {
   }
 
   async transfers(from, to) {
-    const { logs } = await getLogsChunked(this.rpc, { address: this.meta.token, topics: [TRANSFER] }, from, to, { chunk: 200000 });
+    const { logs } = await getLogsChunked(this.rpc, { address: this.meta.token, topics: [TRANSFER] }, from, to, { chunk: 100000 });
     for (const l of logs) {
       const v = BigInt(l.data === "0x" ? 0 : l.data);
       const f = addr(l.topics[1]), t = addr(l.topics[2]);
