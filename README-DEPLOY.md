@@ -28,7 +28,7 @@ tools/deploy.sh
 
 It copies `src/` to a temporary folder and deploys that to the Vercel project linked in `.vercel/project.json`. Deploying the repository folder directly was blocked by Vercel because the commit author is not a member of the Vercel team. `vercel.json` marks the config as `no-cache`, so a config change shows up on the next page load.
 
-Live now: https://weedbrain.vercel.app, watching COON (0x27a0d77264b4bb4bc46f435c63b1f8068cc833d3, paired with AMZN) from its launch.
+Live now: https://weedbrain.lol (also https://weedbrain.vercel.app), watching COON (0x27a0d77264b4bb4bc46f435c63b1f8068cc833d3, paired with AMZN) from its launch.
 
 ## Collector mode
 
